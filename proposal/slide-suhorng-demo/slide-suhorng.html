@@ -36,7 +36,7 @@ we shall aim at relaxing the value restriction locally via control flow analysis
 - Polymorphism has a bad interaction with imperative features such as mutable variable.
 
     ```javascript
-    var mem = (function unsound() {
+    function unsound() {
       var mem = null;
       return function(x) {
         if (mem === null) {
@@ -48,7 +48,7 @@ we shall aim at relaxing the value restriction locally via control flow analysis
           return y;
         }
       };
-    })();
+    }
 
     var mem = unsound();  /* mem : forall a. a -> a */
     var s = mem("hello"); /* mem "hello"  :  string */

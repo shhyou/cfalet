@@ -28,7 +28,7 @@ PICTURE: ./slide-suhorng-demo/expressiveness.png
 - Polymorphism has a bad interaction with imperative features such as mutable variable.
 
     ```javascript
-    var mem = (function unsound() {
+    function unsound() {
       var mem = null;
       return function(x) {
         if (mem === null) {
@@ -40,7 +40,7 @@ PICTURE: ./slide-suhorng-demo/expressiveness.png
           return y;
         }
       };
-    })();
+    }
 
     var mem = unsound();  /* mem : forall a. a -> a */
     var s = mem("hello"); /* mem "hello"  :  string */
