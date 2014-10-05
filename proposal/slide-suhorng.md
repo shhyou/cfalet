@@ -65,3 +65,16 @@ PICTURE: ./slide-suhorng-demo/expressiveness.png
 -->
 
 # Potential Solutions
+- Apply techniques from static program analysis, tracking type informations together with uses of imperative features.
+
+  * The analysis shall basically follows the syntatic *shape* of the program.
+
+  * Any spotted safe type variables should be generalized.
+
+# Novelty
+Static analysis and type systems are two extremes in program analysis. <!-- Most use cases of program analysis have been to guide compiler optimizations or --> Static analysis have been used to identify **potential** errors in the program, while type system <!-- provides a coarse abstraction of a program's runtime behavior but -->**proves** the absence of certain runtime errors.
+
+This project is an attempt to bring the two together in such a way that the static analysis provides information to allow safe but non-provable programs in the original type system without much modification of the rules.
+
+# Evaluation
+We can evaluate our system if it types some orignally untypable terms in practice. The impact on compilation time is also one of our concern.
