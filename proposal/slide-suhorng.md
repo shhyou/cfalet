@@ -15,7 +15,7 @@ we shall aim at relaxing the value restriction locally via control flow analysis
 PICTURE: ./slide-suhorng-demo/expressiveness.png
 
 # Motivation
-- The value restriction refuses to generalize all non-value terms, hence rejecting procedures that compute polymorphic functions, e.g. the combinators.
+- The value restriction refuses to generalize all non-value terms, hence rejecting procedures that compute polymorphic functions.
 
     * Also rejects polymorphic data structures
 
@@ -74,7 +74,7 @@ PICTURE: ./slide-suhorng-demo/expressiveness.png
 # Novelty
 Static analysis and type systems are two extremes in program analysis. <!-- Most use cases of program analysis have been to guide compiler optimizations or --> Static analysis have been used to identify **potential** errors in the program, while type system <!-- provides a coarse abstraction of a program's runtime behavior but -->**proves** the absence of certain runtime errors.
 
-This project is an attempt to bring the two together in such a way that the static analysis provides information to allow safe but non-provable programs in the original type system without much modification of the rules.
+This project is an attempt to bring the two together in such a way that some safe but non-provable programs shall be allowed without much modification to the original type system.
 
 # Evaluation
 We can evaluate our system if it types some orignally untypable terms in practice. The impact on compilation time is also one of our concern.
