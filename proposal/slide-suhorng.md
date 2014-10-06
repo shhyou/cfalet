@@ -72,9 +72,14 @@ PICTURE: ./slide-suhorng-demo/expressiveness.png
   * Any spotted safe type variables should be generalized.
 
 # Novelty
-Static analysis and type systems are two extremes in program analysis. <!-- Most use cases of program analysis have been to guide compiler optimizations or --> Static analysis have been used to identify **potential** errors in the program, while type system <!-- provides a coarse abstraction of a program's runtime behavior but -->**proves** the absence of certain runtime errors.
+<!-- Static analysis and type systems are two extremes in program analysis. Most use cases of program analysis have been to guide compiler optimizations or -->
+Static analysis have been used to identify **potential** errors in the program, while type system
+<!-- provides a coarse abstraction of a program's runtime behavior but -->
+**proves** the absence of certain runtime errors.
 
-This project is an attempt to bring the two together in such a way that some safe but non-provable programs shall be allowed without much modification to the original type system.
+PICTURE: ./slide-suhorng-demo/static-analysis-and-types.png
+
+This project is an attempt to bring the two together so that some safe but non-provable programs shall be allowed without much modification to the original type system.
 
 # Evaluation
 We can evaluate our system if it types some orignally untypable terms in practice. The impact on compilation time is also one of our concern.
