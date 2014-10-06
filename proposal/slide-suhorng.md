@@ -82,4 +82,8 @@ PICTURE: ./slide-suhorng-demo/static-analysis-and-types.png
 This project is an attempt to bring the two together so that some safe but non-provable programs shall be allowed without much modification to the original type system.
 
 # Evaluation
-We can evaluate our system if it types some orignally untypable terms in practice. The impact on compilation time is also one of our concern.
+Our concerns include
+
+- Accepting more terms in practice, i.e. improve expressiveness
+
+- Impact on compilation time
