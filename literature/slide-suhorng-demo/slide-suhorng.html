@@ -12,35 +12,95 @@
 
 - Reference
 
-    * [A Practical and FLexible Flow Analysis for Higher-Order Languages](http://www.cs.indiana.edu/~dyb/pubs/toplas97.pdf)
+    * [A Practical and Flexible Flow Analysis for Higher-Order Languages](http://www.cs.indiana.edu/~dyb/pubs/toplas97.pdf)
 
     * J. Michael Ashley and R. Kent Dybvig.
 
     * *ACM Transactions on Programming Languages and Systems 20*, 4, 845-868, July 1988.
 
 ---
-# Problems Solved 1/2
+# The Problem 1/2
+
+- Control Flow Analysis
+
+    * Find the function call at a given program point (together with the relevant bindings)
+
+    * Inseparable from data flow analysis, in contrast to non-higher-order languages
 
 ---
-# Problems Solved 2/2
+# The Problem 2/2
+
+- Control flow analysis
+
+    * It's **impossible** to determine the exact control flow
+
+    * The approximation ought to be safe
+
+    * Precision versus long run time
+
+- Type system and control flow analysis are both one sort of **abstract interpretation**
 
 ---
 # Methodology 1/2
 
+- A parameterized collecting machine, given operationally.
+
+    * For $M\in \mathit{CS}$, $\widehat{\mathit{eval}}(M) = \hat{C}$ if
+
+        $\langle\mathcal C, \emptyset, \emptyset, \hat{C_0}, \emptyset \rangle \to^+ \langle \mathtt{halt}, \hat{E}, \hat{S}, \hat{C}, \emptyset \rangle$
+
+- A variable allocation function, $\widehat{\mathit{new}}$, controlling precision
+
+- A projection function, $\Theta$, controlling the speed
+
+- Instantiating with different functions gives different analysis, e.g. 0-CFA, 1-CFA
+
 ---
 # Methodology 2/2
 
+- The collecting machine is sound, and is a unified framework. 
+
+- We may probably infer the *pureness* of the expression from the control flow information.
+
+.center[![Dybvig CFA Machine](./dyb-cfa-trans.png)]
+
 ---
 # Evaluation 1/2
+- Use the control flow information to enable more optimizations
+
+.center[![benchmark](./bench-times.png)]
 
 ---
 # Evaluation 2/2
 
+- The benchmarks indeed included
+
+    * Impact on compile-time and run-time speedup
+
+    * Optimized procedures calls -- which is enabled by the proposed CFA
+
+    * Eliminated closure construction, also requires control flow informations
+
 ---
 # Applications and Future Work 1/2
 
+- Being parameterized, the proposed framework is applicable to a wide range of analysis. The compiler may freely choose between precision and speed.
+
+- Control flow information is essential to a plenty number of optimizations
+
+    * Also possible to analyse OO languages
+
+    * Higher-order languages are common nowaday: Scheme, Haskell, Standard ML, javascript, Python, Ruby, ...
+
 ---
 # Applications and Future Work 2/2
+
+- Can also *statically* check the safety of **scripting languages**
+
+- Optimizations for both scripting language and compiled languages are desired
+
+- Between theory and application: Compile-time consumption and precision; many analysis requires tuning
+
 </textarea>
     <script src="./remark-0.6.0.min.js" type="text/javascript"></script>
     <script src="./highlight.pack.js"></script>
