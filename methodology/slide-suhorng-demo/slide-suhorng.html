@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html class="remark-container"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>Technical Writing &amp; Research Method</title>
+    <link rel="stylesheet" href="./style2.css">
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&amp;delayStartupUntil=configured" type="text/javascript"></script>
+  </head>
+  <body class="remark-container">
+<textarea id="source" style="display: none;">
+# Locally Relax the Value Restriction by Control Flow Analysis
+
+- Team 17
+
+- Member:
+
+  * b00902064 宋昊恩
+
+  * b00902107 游書泓
+---
+# Problem Definition
+- Expressions, $e$,
+
+    $e \; ::= \; c \;\;|\;\; x \;\;|\;\; \lambda x.e \;\;|\;\; e\,e \;\;|\;\; \mathtt{if}\,e\,e\,e \;\;|\;\; \mathtt{ref}\; e \;\;|\;\; \mathtt{!}e \;\;|\;\; e\,\mathtt{:=}\,e$<br>
+    $\;\;\;\;\;\;\;|\;\; \mathtt{let}\; x\,\mathtt{=}\,e\;\mathtt{in}\;e$
+
+- Types, $\sigma$
+
+    * $t \; ::= \; \mathtt{int} \;\;|\;\; t\to t \;\;|\;\; \alpha,\beta,\dots$
+    * $\sigma \; ::= \; t \;\;|\;\; \; \forall \alpha. t$
+
+- If $\Gamma \vdash_{\text{v}} e:t$ in the original type system, then $\Gamma \vdash e:t$ in our type system
+
+- If $\text{cfa}$ infers that an expression $e_1$ is pure, then $e_1$ should be assigned a polymorphic type $\forall \bar{\alpha}.t$ in the expression $\mathtt{let}\; x\,\mathtt{=}\,e_1\;\mathtt{in}\;e_2$
+
+---
+# Our Approach - Background
+- Judgment &amp; Derivation
+
+    * $\displaystyle \Gamma \vdash e:t$; under the context $\Gamma$, the term $e$ has type $t$
+
+    $\displaystyle \frac{\Gamma \vdash e_1:t_1}{\Gamma \vdash e_2:t_2}$
+
+    * An **inference rule** with
+
+        + Premise: $\Gamma \vdash e_1:t_1$
+        + Conclusion: $\Gamma \vdash e_2:t_2$
+---
+# Our Approach
+
+- An expression $e$ is **pure** if $\langle e,s \rangle \mapsto^* \langle v,s \rangle$
+
+    * $s$ is the **store**
+
+    * Part of the rule
+
+        + $\boldsymbol\langle \mathtt{ref}\;v,s \boldsymbol\rangle \mapsto \boldsymbol\langle l,s[l:=v] \boldsymbol\rangle$, $l\not\in \text{dom}(s)$
+        + $\boldsymbol\langle !l,s \boldsymbol\rangle \mapsto \boldsymbol\langle s[l],s \boldsymbol\rangle$
+        + $\boldsymbol\langle l\,\mathtt{:=}\,v,s \boldsymbol\rangle \mapsto \boldsymbol\langle \mathtt{()},s[l:=v] \boldsymbol\rangle$
+
+- The control flow analysis gives possible values of a variable, in particular *possible function calls*.
+
+    * $\text{cfa}:\text{Variable}\to \mathcal{P}(\text{Value})$
+---
+# Our Approach
+
+- Original:
+
+$\displaystyle \frac{\Gamma \vdash v:t_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2} \qquad \displaystyle \frac{\Gamma \vdash e_1:t_1 \quad \Gamma,x:t_1 \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,e_1\;\mathtt{in}\;e:t_2}$
+
+- Our:
+
+    * $\displaystyle \frac{\Gamma \vdash e_1:t_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2}$
+
+      + If $\text{cfa}$ asserts that $e_1$ is pure
+
+    * $\displaystyle \frac{\Gamma \vdash v:e_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2}$
+
+      * Otherwise
+
+---
+# Check Points?
+</textarea>
+    <script src="./remark-0.6.0.min.js" type="text/javascript"></script>
+    <script src="./highlight.pack.js"></script>
+    <script type="text/javascript">
+      /* override default hljs engine to provide Haskell syntax highlight */
+      remark.highlighter.engine = hljs;
+      var slideshow = remark.create({
+        highlightStyle: 'ir_black'
+      });
+      MathJax.Hub.Config({
+        "HTML-CSS": { scale: 75 },
+        tex2jax: {
+          skipTags: ['code', 'script', 'noscript', 'style' ,'textarea', 'pre'],
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']]
+        }
+      });
+      MathJax.Hub.Configured();
+    </script>
+    <div class="remark-notes-area">hello world</div>
+</body></html>
