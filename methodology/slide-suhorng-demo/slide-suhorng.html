@@ -50,7 +50,7 @@
 
     * $s$ is the **store**
 
-    * Part of the rule
+    * Part of the rules
 
         + $\boldsymbol\langle \mathtt{ref}\;v,s \boldsymbol\rangle \mapsto \boldsymbol\langle l,s[l:=v] \boldsymbol\rangle$, $l\not\in \text{dom}(s)$
         + $\boldsymbol\langle !l,s \boldsymbol\rangle \mapsto \boldsymbol\langle s[l],s \boldsymbol\rangle$
@@ -64,15 +64,15 @@
 
 - Original:
 
-$\displaystyle \frac{\Gamma \vdash v:t_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2} \qquad \displaystyle \frac{\Gamma \vdash e_1:t_1 \quad \Gamma,x:t_1 \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,e_1\;\mathtt{in}\;e:t_2}$
+$\displaystyle \frac{\Gamma \vdash\_{\text{v}} v:t\_1 \quad \Gamma,x:\text{Gen}(\Gamma,t\_1) \vdash\_{\text{v}} e:t\_2}{\Gamma \vdash\_{\text{v}} \mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t\_2} \quad \displaystyle \frac{\Gamma \vdash\_{\text{v}} e\_1:t\_1 \quad \Gamma,x:t\_1 \vdash\_{\text{v}} e\_2:t\_2}{\Gamma \vdash\_{\text{v}} \mathtt{let}\; x\,\mathtt{=}\,e\_1\;\mathtt{in}\;e\_2:t\_2}$
 
 - Our:
 
-    * $\displaystyle \frac{\Gamma \vdash e_1:t_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2}$
+    * $\displaystyle \frac{\Gamma \vdash e\_1:t\_1 \quad \Gamma,x:\text{Gen}(\Gamma,t\_1) \vdash e\_2:t\_2}{\Gamma \vdash \mathtt{let}\; x\,\mathtt{=}\,e\_1\;\mathtt{in}\;e\_2:t\_2}$
 
-      + If $\text{cfa}$ asserts that $e_1$ is pure
+      + If $\text{cfa}$ asserts that $e\_1$ is pure
 
-    * $\displaystyle \frac{\Gamma \vdash v:e_1 \quad \Gamma,x:\text{Gen}(\Gamma,t_1) \vdash e:t_2}{\mathtt{let}\; x\,\mathtt{=}\,v\;\mathtt{in}\;e:t_2}$
+    * $\displaystyle \frac{\Gamma \vdash e\_1:t\_1 \quad \Gamma,x:t\_1 \vdash e\_2:t\_2}{\Gamma \vdash \mathtt{let}\; x\,\mathtt{=}\,e\_1\;\mathtt{in}\;e\_2:t\_2}$
 
       * Otherwise
 
