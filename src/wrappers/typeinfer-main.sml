@@ -24,7 +24,8 @@ fun main (prog_name, args) =
     print "name: "; print prog_name;
     print "\nargs: "; List.app (fn s => (print s; print " ")) args;
     print "\n";
-    print (Typeinfer.infer [] (AST.Value (AST.Var "x")));
+    print (Type.toString (Typeinfer.infer (Env.empty, AST.Value (AST.Int 5)))); print "\n";
+    print (Type.toString (Typeinfer.infer (Env.empty, AST.Value (AST.Var "x")))); print "\n";
     OS.Process.success)
 
 fun mainWrapped () =
