@@ -1,0 +1,14 @@
+local
+  (* import libraries *)
+  $(SML_LIB)/basis/basis.mlb    (* the standard library *)
+
+  (* main files *)
+  ast.sml
+  typeinfer.sml
+  wrappers/typeinfer-main.sml
+  wrappers/typeinfer-mlton.sml
+in
+  structure AST
+  structure Typeinfer
+  structure Main
+end

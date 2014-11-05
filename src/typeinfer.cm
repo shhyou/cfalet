@@ -1,0 +1,8 @@
+Group (
+  Typeinfer
+) is
+  ast.sml
+  typeinfer.sml
+  wrappers/typeinfer-main.sml
+
+  $/basis.cm
