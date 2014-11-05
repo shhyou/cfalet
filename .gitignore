@@ -1,0 +1,7 @@
+# SML/NJ
+.cm*
+*.x86-win32
+*.x86-win64
+
+# MLton
+*.exe
