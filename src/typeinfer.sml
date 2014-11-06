@@ -56,13 +56,19 @@ struct
       Unlink of string
     | Link of t
 
-  fun toString Unit = "Unit"
-    | toString Int = "Int"
-    | toString Bool = "Bool"
-    | toString (Var (ref (Unlink v))) = v
-    | toString (Var (ref (Link t))) = toString t
-    | toString (Arrow (t1, t2)) = "(" ^ toString t1 ^ " -> " ^ toString t2 ^ ")"
-    | toString (Ref t) = "(" ^ toString t ^ ") ref"
+  fun addParen b s = if b then "(" ^ s ^ ")" else s
+
+  fun mkStringAux pred Unit = "Unit"
+    | mkStringAux pred Int = "Int"
+    | mkStringAux pred Bool = "Bool"
+    | mkStringAux pred (Var (ref (Unlink v))) = v
+    | mkStringAux pred (Var (ref (Link t))) = mkStringAux pred t
+    | mkStringAux pred (Arrow (t1, t2)) =
+        addParen (pred > 0) (mkStringAux 1 t1 ^ " -> " ^ mkStringAux 0 t2)
+    | mkStringAux pred (Ref t) =
+        addParen (pred >= 10) (mkStringAux 9 t ^ " ref")
+
+  val toString = mkStringAux 0
 
   fun toStringPoly (Mono t) = toString t
     | toStringPoly (Poly (vs, t)) =

@@ -1,6 +1,4 @@
-Group (
-  Typeinfer
-) is
+Group is
   ast.sml
   typeinfer.sml
   wrappers/typeinfer-main.sml

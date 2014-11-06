@@ -20,12 +20,10 @@ struct
 
 (*  main : string * string list -> OS.Process.status *)
 fun main (prog_name, args) =
-  ( print "hello, world!\n";
-    print "name: "; print prog_name;
-    print "\nargs: "; List.app (fn s => (print s; print " ")) args;
-    print "\n";
-    print (Type.toString (Typeinfer.infer (Env.empty, AST.Value (AST.Int 5)))); print "\n";
-    print (Type.toString (Typeinfer.infer (Env.empty, AST.Value (AST.Var "x")))); print "\n";
+  ( print (AST.toString AST.p0 ^ "\n");
+    print (Type.toString (Typeinfer.infer (Env.empty, AST.p0)) ^ "\n=====\n");
+    print (AST.toString AST.p1 ^ "\n");
+    print (Type.toString (Typeinfer.infer (Env.empty, AST.p1)) ^ "\n=====\n");
     OS.Process.success)
 
 fun mainWrapped () =
