@@ -5,3 +5,9 @@
 
 # MLton
 *.exe
+
+# Parser generated file
+lexer.lex.sml
+parser.grm.sig
+parser.grm.sml
+parser.grm.desc
