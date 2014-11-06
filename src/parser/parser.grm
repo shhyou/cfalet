@@ -1,0 +1,55 @@
+val fn_add = "add"
+val fn_sub = "sub"
+val fn_imul = "imul"
+val fn_idiv = "idiv"
+
+fun apRef (AST.Value (AST.Var "ref"), e2) = AST.Ref e2
+  | apRef (e1, e2) = AST.Ap (e1, e2)
+
+%%
+
+%pos int
+%name Parser0
+
+%nonassoc ASSIGN
+%left MINUS PLUS
+%left TIMES DIV
+%right DEREF
+
+%eop EOF
+%noshift EOF
+
+%term UNIT | INT of int | BOOL of bool | VAR of string |
+      LET | EQUALS | IN | IF | THEN | ELSE | FN | MAPSTO |
+      DEREF | ASSIGN | PLUS | MINUS | TIMES | DIV | LPAREN | RPAREN | EOF
+
+%nonterm PROG of AST.t | TOPEXPR of AST.t | EXPR of AST.t | BOTEXPRAP of AST.t | BOTEXPR of AST.t
+
+%keyword FN LET IN IF THEN ELSE
+%verbose
+
+%%
+
+PROG : TOPEXPR (TOPEXPR)
+
+TOPEXPR : EXPR                                 (EXPR)
+        | FN VAR MAPSTO TOPEXPR                (AST.Value (AST.Lam (VAR, TOPEXPR)))
+        | LET VAR EQUALS TOPEXPR IN TOPEXPR    (AST.Let (VAR, TOPEXPR1, TOPEXPR2))
+        | IF TOPEXPR THEN TOPEXPR ELSE TOPEXPR (AST.If (TOPEXPR1, TOPEXPR2, TOPEXPR3))
+
+EXPR : BOTEXPRAP                      (BOTEXPRAP)
+     | DEREF EXPR                     (AST.Deref EXPR)
+     | EXPR ASSIGN EXPR               (AST.Set (EXPR1, EXPR2))
+     | EXPR PLUS EXPR                 (AST.Ap (AST.Ap (AST.Value (AST.Var fn_add), EXPR1), EXPR2))
+     | EXPR MINUS EXPR                (AST.Ap (AST.Ap (AST.Value (AST.Var fn_sub), EXPR1), EXPR2))
+     | EXPR TIMES EXPR                (AST.Ap (AST.Ap (AST.Value (AST.Var fn_imul), EXPR1), EXPR2))
+     | EXPR DIV EXPR                  (AST.Ap (AST.Ap (AST.Value (AST.Var fn_idiv), EXPR1), EXPR2))
+
+BOTEXPRAP : BOTEXPR                   (BOTEXPR)
+          | BOTEXPRAP BOTEXPR         (apRef (BOTEXPRAP, BOTEXPR))
+
+BOTEXPR : UNIT                        (AST.Value (AST.Unit))
+        | INT                         (AST.Value (AST.Int INT))
+        | BOOL                        (AST.Value (AST.Bool BOOL))
+        | VAR                         (AST.Value (AST.Var VAR))
+        | LPAREN TOPEXPR RPAREN       (TOPEXPR)
