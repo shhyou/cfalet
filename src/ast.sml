@@ -51,7 +51,7 @@ struct
     | mkStringAux pred indent (Deref e) =
         addParen (pred > 8) ("!" ^ mkStringAux 10 indent e)
     | mkStringAux pred indent (Set (e1, e2)) =
-        addParen (pred > 4) (mkStringAux 10 indent e1 ^ " := ")
+        addParen (pred > 4) (mkStringAux 10 indent e1 ^ " := " ^ mkStringAux 10 indent e2)
 
   val toString = mkStringAux 0 ""
 
