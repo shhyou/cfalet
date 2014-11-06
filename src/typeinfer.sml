@@ -129,6 +129,9 @@ fun unify (Type.Unit, Type.Unit) = ()
       else var := Type.Link t2
   | unify (t1,       Type.Var (ref (Type.Link t2))) = unify (t1, t2)
   | unify (t1, t2 as Type.Var (ref (Type.Unlink _))) = unify (t2, t1)
+  | unify (Type.Arrow (dom1, codom1), Type.Arrow (dom2, codom2)) =
+      (unify (dom1, dom2);
+       unify (codom1, codom2))
   | unify ts = raise (NoUnify ts)
 
 (*  generalize : Type.tyscheme Env.t * Type.t -> Type.tyscheme *)
@@ -172,11 +175,11 @@ fun infer (cxt, AST.Value AST.Unit) = Type.Unit
       in
         Type.Arrow (a, infer (Env.extend (x, Type.Mono a) cxt, e))
       end
-  | infer (cxt, AST.Ap (v1, v2)) =
+  | infer (cxt, AST.Ap (e1, e2)) =
       let
         val b = fresh ()
-        val t1 = infer (cxt, v1)
-        val a = infer (cxt, v2)
+        val t1 = infer (cxt, e1)
+        val a = infer (cxt, e2)
       in
         unify (Type.Arrow (a, b), t1);
         b
