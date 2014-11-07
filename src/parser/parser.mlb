@@ -7,4 +7,4 @@ parser.grm.sig
 
 lexer.lex.sml
 parser.grm.sml
-parser-mlton.sml
+../parser.sml
