@@ -3,6 +3,8 @@ local
   $(SML_LIB)/basis/basis.mlb    (* the standard library *)
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
 
+  ../type.mlb
+
   (* main files *)
   ../ast.sml
 
@@ -17,6 +19,7 @@ local
 in
   structure AST
   structure Parser0
+  structure Type
   structure Typeinfer
   structure Main
 end

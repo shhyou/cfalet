@@ -1,0 +1,9 @@
+local
+  $(SML_LIB)/basis/basis.mlb    (* the standard library *)
+
+  ./type/type.sig
+  ./type/type.sml
+in
+  signature TYPE
+  structure Type
+end

@@ -6,5 +6,7 @@ Group is
   ../parser.sml
   ../parser/lexer.lex
   ../parser/parser.grm
+  ../type/type.sig
+  ../type/type.sml
   ../typeinfer.sml
   typeinfer-main.sml
