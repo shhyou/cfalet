@@ -1,45 +1,5 @@
 (* For compilation instructions/usages, see wrappers/typeinfer-main.sml *)
 
-signature ENV =
-sig
-  type 'a t
-  exception NotFound of string
-
-  val empty : 'a t
-  val extend : string * 'a -> 'a t -> 'a t
-  val lookup : string -> 'a t -> 'a
-  val member : string -> 'a t -> bool
-
-  val fromList : (string * 'a) list -> 'a t
-  val toString : ('a -> string) -> 'a t -> string
-end
-
-structure Env : ENV =
-struct
-  type 'a t = (string * 'a) list
-  exception NotFound of string
-
-  val empty = []
-
-  fun extend pr = fn xs => pr :: xs
-
-  fun lookup key [] = raise (NotFound key)
-    | lookup key ((k, v)::xs) =
-        if key = k
-        then v
-        else lookup key xs
-
-  fun member key [] = false
-    | member key ((k,v)::xs) = (key = k) orelse member key xs
-
-  val fromList = fn xs => xs
-
-  fun toString show xs =
-      "[" ^ String.concatWith ", "
-              (List.map (fn (x, v) => "(" ^ x ^ "," ^ show v ^ ")") xs)
-    ^ "]"
-end
-
 structure Typeinfer =
 struct
 
@@ -63,10 +23,10 @@ val fresh =
 fun instantiate (Type.Mono t) = t
   | instantiate (Type.Poly (vs, t)) =
       let
-        val vars = Env.fromList (List.map (fn x => (x, fresh ())) vs)
+        val vars = EnvStr.fromList (List.map (fn x => (x, fresh ())) vs)
 
         fun renew (Type.Var (var as ref (Type.Unlink x))) =
-              (Env.lookup x vars handle Env.NotFound _ => Type.Var var)
+              (EnvStr.lookup x vars handle EnvStr.NotFound _ => Type.Var var)
           | renew (Type.Var (ref (Type.Link t))) = renew t
           | renew (Type.Arrow (t1, t2)) = Type.Arrow (renew t1, renew t2)
           | renew t = t (* Unit, Int, Bool *)
@@ -99,20 +59,20 @@ fun unify (Type.Unit, Type.Unit) = ()
        unify (codom1, codom2))
   | unify ts = raise (NoUnify ts)
 
-(*  generalize : Type.tyscheme Env.t * Type.t -> Type.tyscheme *)
+(*  generalize : Type.tyscheme EnvStr.t * Type.t -> Type.tyscheme *)
 fun generalize (cxt, t) =
   let
-    val maps = ref Env.empty
+    val maps = ref EnvStr.empty
     val vars = ref []
 
     fun genVars (Type.Var (ref (Type.Unlink x))) =
-          if Env.member x (!maps) orelse Env.member x cxt
+          if EnvStr.member x (!maps) orelse EnvStr.member x cxt
           then ()
           else let
             val v = fresh ()                                        (* impossible *)
             val y = case v of Type.Var (ref (Type.Unlink y)) => y | _ => raise Undefined
           in
-            maps := Env.extend (x,v) (!maps);
+            maps := EnvStr.extend (x,v) (!maps);
             vars := y::(!vars)
           end
       | genVars (Type.Var (ref (Type.Link t))) = genVars t
@@ -120,7 +80,7 @@ fun generalize (cxt, t) =
       | genVars _ = () (* Unit, Int, Bool *)
 
     fun renew (t as Type.Var (ref (Type.Unlink x))) =
-          (Env.lookup x (!maps) handle Env.NotFound _ => t)
+          (EnvStr.lookup x (!maps) handle EnvStr.NotFound _ => t)
       | renew (Type.Var (ref (Type.Link t))) = t
       | renew (Type.Arrow (t1, t2)) = Type.Arrow (renew t1, renew t2)
       | renew t = t (* Unit, Int, Bool *)
@@ -129,16 +89,16 @@ fun generalize (cxt, t) =
     if null (!vars) then Type.Mono t else Type.Poly (!vars, renew t)
   end
 
-(*  infer : Type.tyscheme Env.t * AST.t -> Type.t *)
+(*  infer : Type.tyscheme EnvStr.t * AST.t -> Type.t *)
 fun infer (cxt, AST.Value AST.Unit) = Type.Unit
   | infer (cxt, AST.Value (AST.Int n)) = Type.Int
   | infer (cxt, AST.Value (AST.Bool b)) = Type.Bool
-  | infer (cxt, AST.Value (AST.Var x)) = instantiate (Env.lookup x cxt)
+  | infer (cxt, AST.Value (AST.Var x)) = instantiate (EnvStr.lookup x cxt)
   | infer (cxt, AST.Value (AST.Lam (x, e))) =
       let
         val a = fresh ()   (* lam : a -> b *)
       in
-        Type.Arrow (a, infer (Env.extend (x, Type.Mono a) cxt, e))
+        Type.Arrow (a, infer (EnvStr.extend (x, Type.Mono a) cxt, e))
       end
   | infer (cxt, AST.Ap (e1, e2)) =
       let
@@ -153,13 +113,13 @@ fun infer (cxt, AST.Value AST.Unit) = Type.Unit
       let
         val t = infer (cxt, v)
       in
-        infer (Env.extend (x, generalize (cxt, t)) cxt, e)
+        infer (EnvStr.extend (x, generalize (cxt, t)) cxt, e)
       end
   | infer (cxt, AST.Let (x, e1, e2)) =
       let
         val t1 = infer (cxt, e1)
       in
-        infer (Env.extend (x, Type.Mono t1) cxt, e2)
+        infer (EnvStr.extend (x, Type.Mono t1) cxt, e2)
       end
   | infer (cxt, AST.If (e1, e2, e3)) =
       let

@@ -2,6 +2,7 @@ local
   (* import libraries *)
   $(SML_LIB)/basis/basis.mlb    (* the standard library *)
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+  ../envstr.sml
 
   ../type.mlb
 
@@ -17,6 +18,9 @@ local
   typeinfer-main.sml
   typeinfer-mlton.sml
 in
+  signature ENV_STR
+  structure EnvStr
+
   structure AST
   structure Parser0
   structure Type
