@@ -1,0 +1,13 @@
+$(SML_LIB)/basis/basis.mlb
+$(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+
+../ast.sml
+
+../parser/parser.grm.sig
+
+../parser/lexer.lex.sml
+../parser/parser.grm.sml
+
+../parser.sml
+parser-main.sml
+parser-mlton.sml

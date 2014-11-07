@@ -1,3 +1,5 @@
+(* This file is modified from MLton/mlyacc/examples/calc.lex *)
+
 structure Tokens = Tokens
 
 type pos = int
