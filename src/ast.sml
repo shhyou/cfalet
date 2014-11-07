@@ -26,8 +26,8 @@ struct
       val indent' = if newblock then tab ^ indent else indent
     in
       if newblock
-      then " " ^ sep ^ "\n" ^ indent' ^ k indent' e
-      else " " ^ sep ^ " " ^ k indent' e
+      then sep ^ "\n" ^ indent' ^ k indent' e
+      else sep ^ " " ^ k indent' e
     end
 
   fun mkStringAuxV pred indent Unit = "()"
@@ -35,12 +35,12 @@ struct
     | mkStringAuxV pred indent (Bool b) = Bool.toString b
     | mkStringAuxV pred indent (Var x) = x
     | mkStringAuxV pred indent (Lam (x, e)) =
-        addParen (pred > 0) ("fn " ^ x ^ block indent "=>" (mkStringAux 0) e)
+        addParen (pred > 0) ("fn " ^ x ^ block indent " =>" (mkStringAux 0) e)
   and mkStringAux pred indent (Value v) = mkStringAuxV pred indent v
     | mkStringAux pred indent (Ap (e1, e2)) =
         addParen (pred >= 10) (mkStringAux 9 indent e1 ^ " " ^ mkStringAux 10 indent e2)
     | mkStringAux pred indent (Let (x, e1, e2)) =
-        addParen (pred > 0) ("let " ^ x ^ block indent "=" (mkStringAux 0) e1 ^ " in\n"
+        addParen (pred > 0) ("let " ^ x ^ block indent " =" (mkStringAux 0) e1 ^ " in\n"
                             ^ indent ^ mkStringAux 0 indent e2)
     | mkStringAux pred indent (If (e1, e2, e3)) =
         addParen (pred > 0) ("if" ^ block indent "" (mkStringAux 0) e1

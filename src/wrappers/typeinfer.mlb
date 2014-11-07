@@ -1,14 +1,22 @@
 local
   (* import libraries *)
   $(SML_LIB)/basis/basis.mlb    (* the standard library *)
+  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
 
   (* main files *)
   ../ast.sml
+
+  ../parser/parser.grm.sig
+  ../parser/lexer.lex.sml
+  ../parser/parser.grm.sml
+  ../parser.sml
+
   ../typeinfer.sml
   typeinfer-main.sml
   typeinfer-mlton.sml
 in
   structure AST
+  structure Parser0
   structure Typeinfer
   structure Main
 end

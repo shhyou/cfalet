@@ -17,9 +17,10 @@ structure Parser0Parser =
 exception ParseError of string * int
 
 (*  parse : (int -> string) -> AST.t, raises ParseError *)
-fun parse input =
+fun parse ins =
   let
     fun parseError (s, i, _) = raise (ParseError (s, i))
+    fun input _ = TextIO.input ins
   in
     #1 (Parser0Parser.parse (0, Parser0Parser.makeLexer input, parseError, ()))
   end

@@ -5,8 +5,7 @@ datatype ParseResult = Success of AST.t | Failed of string
 
 fun main (prog_name, args) =
   let
-    val input = fn _ => TextIO.input TextIO.stdIn
-    val result = Success (Parser0.parse input)
+    val result = Success (Parser0.parse TextIO.stdIn)
                   handle Parser0.ParseError (msg, pos) =>
                     Failed ("line " ^ (Int.toString pos) ^ ", " ^ msg)
   in

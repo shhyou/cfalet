@@ -24,6 +24,8 @@ fun main (prog_name, args) =
     print (Type.toString (Typeinfer.infer (Env.empty, AST.p0)) ^ "\n=====\n");
     print (AST.toString AST.p1 ^ "\n");
     print (Type.toString (Typeinfer.infer (Env.empty, AST.p1)) ^ "\n=====\n");
+    print "input any program:\n";
+    print (Type.toString (Typeinfer.infer (Env.empty, Parser0.parse TextIO.stdIn)) ^ "\n");
     OS.Process.success)
 
 fun mainWrapped () =

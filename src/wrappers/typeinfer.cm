@@ -1,6 +1,10 @@
 Group is
+  $/basis.cm
+  $/ml-yacc-lib.cm
+
   ../ast.sml
+  ../parser.sml
+  ../parser/lexer.lex
+  ../parser/parser.grm
   ../typeinfer.sml
   typeinfer-main.sml
-
-  $/basis.cm
