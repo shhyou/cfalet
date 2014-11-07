@@ -1,0 +1,6 @@
+Group is
+  ../ast.sml
+  ../typeinfer.sml
+  typeinfer-main.sml
+
+  $/basis.cm
