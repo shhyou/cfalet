@@ -101,7 +101,7 @@ fun instantiate (Type.Mono t) = t
         val vars = Env.fromList (List.map (fn x => (x, fresh ())) vs)
 
         fun renew (Type.Var (var as ref (Type.Unlink x))) =
-              (Env.lookup x vars handle (Env.NotFound _) => Type.Var var)
+              (Env.lookup x vars handle Env.NotFound _ => Type.Var var)
           | renew (Type.Var (ref (Type.Link t))) = renew t
           | renew (Type.Arrow (t1, t2)) = Type.Arrow (renew t1, renew t2)
           | renew t = t (* Unit, Int, Bool *)
@@ -155,7 +155,7 @@ fun generalize (cxt, t) =
       | genVars _ = () (* Unit, Int, Bool *)
 
     fun renew (t as Type.Var (ref (Type.Unlink x))) =
-          (Env.lookup x (!maps) handle (Env.NotFound _) => t)
+          (Env.lookup x (!maps) handle Env.NotFound _ => t)
       | renew (Type.Var (ref (Type.Link t))) = t
       | renew (Type.Arrow (t1, t2)) = Type.Arrow (renew t1, renew t2)
       | renew t = t (* Unit, Int, Bool *)
