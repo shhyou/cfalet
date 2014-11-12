@@ -58,4 +58,6 @@ struct
   val p0 = Value (Lam ("x", Value (Lam ("f", Ap (Value (Var "f"), Value (Var "x"))))))
   val p1 = Let ("id", Value (Lam ("x", Value (Var "x"))),
            Ap (Ap (Value (Var "id"), Value (Var "id")), Value (Int 5)))
+  val p2 = Value (Lam ("x", Let ("y", Value (Var "x"), Value (Var "y"))))
+
 end

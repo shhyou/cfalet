@@ -9,6 +9,7 @@ sig
   val member : string -> 'a t -> bool
 
   val fromList : (string * 'a) list -> 'a t
+  val toList : 'a t -> (string * 'a) list
   val toString : ('a -> string) -> 'a t -> string
 end
 
@@ -31,6 +32,7 @@ struct
     | member key ((k,v)::xs) = (key = k) orelse member key xs
 
   val fromList = fn xs => xs
+  val toList = fn xs => xs
 
   fun toString show xs =
       "[" ^ String.concatWith ", "

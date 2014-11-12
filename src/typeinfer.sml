@@ -62,11 +62,21 @@ fun unify (Type.Unit, Type.Unit) = ()
 (*  generalize : Type.tyscheme EnvStr.t * Type.t -> Type.tyscheme *)
 fun generalize (cxt, t) =
   let
+    fun fv (Type.Var (ref (Type.Unlink x))) = [(x, ())]
+      | fv (Type.Var (ref (Type.Link t))) = fv t
+      | fv (Type.Arrow (t1, t2)) = fv t1 @ fv t2
+      | fv _ = []
+
+    val fvs = EnvStr.fromList
+                (List.concat
+                  (List.map (fn (_, Type.Mono t) => fv t | _ => [])
+                    (EnvStr.toList cxt)))
+
     val maps = ref EnvStr.empty
     val vars = ref []
 
     fun genVars (Type.Var (ref (Type.Unlink x))) =
-          if EnvStr.member x (!maps) orelse EnvStr.member x cxt
+          if EnvStr.member x (!maps) orelse EnvStr.member x fvs
           then ()
           else let
             val v = fresh ()                                        (* impossible *)
