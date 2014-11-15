@@ -16,12 +16,16 @@ struct
     | Set of v * v
 
   val fresh =
-    let val cnt = ref 0
-    in  fn s =>
-          let val name = s ^ Int.toString (!cnt)
-          in  cnt := !cnt + 1;
-              name
-          end
+    let
+      val cnt = ref 0
+    in
+      fn s =>
+        let
+          val name = s ^ Int.toString (!cnt)
+        in
+          cnt := !cnt + 1;
+          name
+        end
     end
 
   val tmpVarPrefix = "%"
@@ -35,9 +39,11 @@ struct
     | normalizeK (AST.Ap (e1, e2)) k =
         normalizeK e1 (fn v1 =>
           normalizeK e2 (fn v2 =>
-            let val tmp = fresh tmpVarPrefix
-            in  Let (tmp, Ap (v1, v2),
-                k (Var tmp))
+            let
+              val tmp = fresh tmpVarPrefix
+            in
+              Let (tmp, Ap (v1, v2),
+              k (Var tmp))
             end))
     | normalizeK (AST.Let (x, e1, e2)) k =
         normalizeK e1 (fn v1 =>
@@ -45,31 +51,39 @@ struct
           normalizeK e2 k))
     | normalizeK (AST.If (e1, e2, e3)) k =
         normalizeK e1 (fn v1 =>
-          let val tmp = fresh tmpVarPrefix
-              val arg = fresh tmpVarPrefix
-          in  Let (tmp, Value (Lam (arg, k (Var arg))),
-              If (v1,
-                  normalizeK e2 (fn v => Ap (Var tmp, v)),
-                  normalizeK e3 (fn v => Ap (Var tmp, v))))
+          let
+            val tmp = fresh tmpVarPrefix
+            val arg = fresh tmpVarPrefix
+          in
+            Let (tmp, Value (Lam (arg, k (Var arg))),
+            If (v1,
+                normalizeK e2 (fn v => Ap (Var tmp, v)),
+                normalizeK e3 (fn v => Ap (Var tmp, v))))
           end)
     | normalizeK (AST.Ref e) k =
         normalizeK e (fn v =>
-          let val tmp = fresh tmpVarPrefix
-          in  Let (tmp, Ref v,
-              k (Var tmp))
+          let
+            val tmp = fresh tmpVarPrefix
+          in
+            Let (tmp, Ref v,
+            k (Var tmp))
           end)
     | normalizeK (AST.Deref e) k =
         normalizeK e (fn v =>
-          let val tmp = fresh tmpVarPrefix
-          in  Let (tmp, Deref v,
-              k (Var tmp))
+          let
+            val tmp = fresh tmpVarPrefix
+          in
+            Let (tmp, Deref v,
+            k (Var tmp))
           end)
     | normalizeK (AST.Set (e1, e2)) k =
         normalizeK e1 (fn v1 =>
           normalizeK e2 (fn v2 =>
-            let val tmp = fresh tmpVarPrefix
-            in  Let (tmp, Set (v1, v2),
-                k (Var tmp))
+            let
+              val tmp = fresh tmpVarPrefix
+            in
+              Let (tmp, Set (v1, v2),
+              k (Var tmp))
             end))
 
   val tab = "    "
