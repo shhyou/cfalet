@@ -57,6 +57,7 @@ fun unify (Type.Unit, Type.Unit) = ()
   | unify (Type.Arrow (dom1, codom1), Type.Arrow (dom2, codom2)) =
       (unify (dom1, dom2);
        unify (codom1, codom2))
+  | unify (Type.Ref t1, Type.Ref t2) = unify (t1, t2)
   | unify ts = raise (NoUnify ts)
 
 (*  generalize : Type.tyscheme EnvStr.t * Type.t -> Type.tyscheme *)
