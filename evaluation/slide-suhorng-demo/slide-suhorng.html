@@ -50,7 +50,7 @@ in delayid 0
 ```
 ---
 # Measurement
-- The first two examples do not type check in Standard ML. They are typable in our system.
+- The first two examples do not type check in Standard ML. They are typeable in our system.
 
 - Haven't done: integrate into some existing compiler and measures the compile time
 
@@ -60,12 +60,12 @@ in delayid 0
 - `idid`
 
     * Original type system: $\mathtt{\\\_} t\to \mathtt{\\\_} t$
-    * Our type system: $\forall t.\; t\to t$
+    * Our type system: $\forall t.\, t\to t$
 
 - `mapfst`
 
-    * Original type system: $\mathtt{\\\_} t\; \mathtt{list}\to \mathtt{\\\_} t\; \mathtt{list}$
-    * Our type system: $\forall t.\; t\; \mathtt{list}\to t\; \mathtt{list}$
+    * Original type system: $(\mathtt{\\\_} a \mathtt{\, *\, }\mathtt{\\\_} b)\; \mathtt{list}\to \mathtt{\\\_} a\; \mathtt{list}$
+    * Our type system: $\forall a\;b.\, (a \mathtt{\, *\, } b)\; \mathtt{list}\to a\; \mathtt{list}$
 
 - `delayid`
 
