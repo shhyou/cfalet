@@ -5,10 +5,10 @@ struct
     | Int of int
     | Bool of bool
     | Var of string
-    | Lam of string * t
   and t =
       Value of v
     | Ap of v * v
+    | Lam of string * string * t * t (* let f = \x. e1 in e2 *)
     | Let of string * string option * t * t
     | If of v * t * t
     | Ref of v
@@ -33,7 +33,13 @@ struct
     | normalizeK (AST.Value (AST.Int n)) k = k (Int n)
     | normalizeK (AST.Value (AST.Bool b)) k = k (Bool b)
     | normalizeK (AST.Value (AST.Var x)) k = k (Var x)
-    | normalizeK (AST.Value (AST.Lam (x, e))) k = k (Lam (x, normalizeK e Value))
+    | normalizeK (AST.Value (AST.Lam (x, e))) k =
+        let
+          val tmp = fresh ()
+        in
+          Lam (tmp, x, normalizeK e Value,
+          k (Var tmp))
+        end
     | normalizeK (AST.Ap (e1, e2)) k =
         normalizeK e1 (fn v1 =>
           normalizeK e2 (fn v2 =>
@@ -53,7 +59,7 @@ struct
             val tmp = fresh ()
             val arg = fresh ()
           in
-            Let (tmp, NONE, Value (Lam (arg, k (Var arg))),
+            Lam (tmp, arg, k (Var arg),
             If (v1,
                 normalizeK e2 (fn v => Ap (Var tmp, v)),
                 normalizeK e3 (fn v => Ap (Var tmp, v))))
@@ -102,11 +108,16 @@ struct
     | mkStringAuxV pred indent (Int n) = Int.toString n
     | mkStringAuxV pred indent (Bool b) = Bool.toString b
     | mkStringAuxV pred indent (Var x) = x
-    | mkStringAuxV pred indent (Lam (x, e)) =
-        addParen (pred > 0) ("fn " ^ x ^ block indent " =>" (mkStringAux 0) e)
   and mkStringAux pred indent (Value v) = mkStringAuxV pred indent v
     | mkStringAux pred indent (Ap (e1, e2)) =
         addParen (pred >= 10) (mkStringAuxV 9 indent e1 ^ " " ^ mkStringAuxV 10 indent e2)
+    | mkStringAux pred indent (Lam (f, x, e1, e2)) =
+      let
+        val lam = addParen (pred > 0) ("fn " ^ x ^ block indent " =>" (mkStringAux 0) e1)
+      in
+        addParen (pred > 0) ("let " ^ f ^ " = " ^ lam ^ " in\n"
+                            ^ indent ^ mkStringAux 0 indent e2)
+      end
     | mkStringAux pred indent (Let (x, lbl, e1, e2)) =
       let
         val name = case lbl of NONE => "" | SOME y => y ^ "/"
@@ -126,5 +137,9 @@ struct
         addParen (pred > 4) (mkStringAuxV 10 indent e1 ^ " := " ^ mkStringAuxV 10 indent e2)
 
   val toString = mkStringAux 0 ""
+
+  val p0 = normalizeK AST.p0 Value
+  val p1 = normalizeK AST.p1 Value
+  val p2 = normalizeK AST.p2 Value
 
 end
