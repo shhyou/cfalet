@@ -1,6 +1,7 @@
 Group is
   $/basis.cm
   $/ml-yacc-lib.cm
+  $/smlnj-lib.cm
   ../envstr.sml
 
   ../ast.sml
@@ -10,3 +11,4 @@ Group is
   ../type/type.sig
   ../type/type.sml
   ../ncl.sml
+  ../kcfa.sml
