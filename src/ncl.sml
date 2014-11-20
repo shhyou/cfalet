@@ -8,7 +8,7 @@ struct
   and t =
       Value of v
     | Ap of v * v
-    | Lam of string * string * t * t (* let f = \x. e1 in e2 *)
+    | LetLam of string * string * t * t (* let f = \x. e1 in e2 *)
     | Let of string * string option * t * t
     | If of v * t * t
     | Ref of v
@@ -37,7 +37,7 @@ struct
         let
           val tmp = fresh ()
         in
-          Lam (tmp, x, normalizeK e Value,
+          LetLam (tmp, x, normalizeK e Value,
           k (Var tmp))
         end
     | normalizeK (AST.Ap (e1, e2)) k =
@@ -59,7 +59,7 @@ struct
             val tmp = fresh ()
             val arg = fresh ()
           in
-            Lam (tmp, arg, k (Var arg),
+            LetLam (tmp, arg, k (Var arg),
             If (v1,
                 normalizeK e2 (fn v => Ap (Var tmp, v)),
                 normalizeK e3 (fn v => Ap (Var tmp, v))))
@@ -111,7 +111,7 @@ struct
   and mkStringAux pred indent (Value v) = mkStringAuxV pred indent v
     | mkStringAux pred indent (Ap (e1, e2)) =
         addParen (pred >= 10) (mkStringAuxV 9 indent e1 ^ " " ^ mkStringAuxV 10 indent e2)
-    | mkStringAux pred indent (Lam (f, x, e1, e2)) =
+    | mkStringAux pred indent (LetLam (f, x, e1, e2)) =
       let
         val lam = addParen (pred > 0) ("fn " ^ x ^ block indent " =>" (mkStringAux 0) e1)
       in

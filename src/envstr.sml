@@ -8,6 +8,7 @@ sig
   val lookup : string -> 'a t -> 'a
   val member : string -> 'a t -> bool
 
+  val compareWith : ('a * 'a -> order) -> 'a t * 'a t -> order
   val fromList : (string * 'a) list -> 'a t
   val toList : 'a t -> (string * 'a) list
   val toString : ('a -> string) -> 'a t -> string
@@ -30,6 +31,20 @@ struct
 
   fun member key [] = false
     | member key ((k,v)::xs) = (key = k) orelse member key xs
+
+  fun compareWith cmp =
+    let
+      fun listComp ([], []) = EQUAL
+        | listComp ([], _::_) = LESS
+        | listComp (_::_, []) = GREATER
+        | listComp ((k1,v1)::xs1, (k2,v2)::xs2) =
+            case (String.compare (k1,k2), cmp (v1,v2)) of
+                (EQUAL, EQUAL) => listComp (xs1, xs2)
+              | (EQUAL, unequ) => unequ
+              | (unequ, _)     => unequ
+    in
+      listComp
+    end
 
   val fromList = fn xs => xs
   val toList = fn xs => xs
