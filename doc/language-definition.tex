@@ -48,7 +48,7 @@ e  ::=  v
 \begin{prooftree}
 \AxiomC{}
 \RightLabel{(\textbf{unit})}
-\UnaryInfC{($\unit$ \texttt{val})}
+\UnaryInfC{$\unit$ \texttt{val}}
 \end{prooftree}
 
 \begin{prooftree}
@@ -67,6 +67,12 @@ e  ::=  v
 \AxiomC{}
 \RightLabel{(\textbf{lam})}
 \UnaryInfC{$\lambda x.e$ \texttt{val}}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$l\in\mathbf{Label}$}
+\RightLabel{(\textbf{label})}
+\UnaryInfC{$l$ \texttt{val}}
 \end{prooftree}
 \end{minipage}
 
