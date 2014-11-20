@@ -1,7 +1,7 @@
-\documentclass[]{article}
+\documentclass{article}
 
 \usepackage{amsmath,amsfonts,amssymb}
-\usepackage[margin=3cm]{geometry}
+\usepackage[margin=2.6cm]{geometry}
 \usepackage{bussproofs}
 
 \input{mathdef.tex}
@@ -88,8 +88,8 @@
 \section{Syntax}
 The syntax of $\lambda_\text{ref}$ is given below.
 
-\begin{minipage}[t]{\textwidth}
-\begin{minipage}[t]{0.4\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.45\textwidth}
 \begin{code}
 v  ::=  $\unit$
      |    $n\in \N$
@@ -97,8 +97,10 @@ v  ::=  $\unit$
      |    x
      |    $\Gl$x.e
 \end{code}
+
 \end{minipage}
-\begin{minipage}[t]{0.5\textwidth}
+\begin{minipage}[t]{0.45\textwidth}
+
 \begin{code}
 e  ::=  v
      |   e$_1$ e$_2$
@@ -110,138 +112,167 @@ e  ::=  v
 \end{code}
 \end{minipage}
 \end{minipage}
+
 \section{Small Step Semantics}
-\subsection{Values}
-\begin{itemize}
-\item (\textbf{unit})
+
+\begin{tabular}{cc}
+
+\begin{minipage}{0.35\textwidth}
 \begin{prooftree}
 \AxiomC{}
-\UnaryInfC{$\unit$ \texttt{val}}
+\RightLabel{(\textbf{unit})}
+\UnaryInfC{($\unit$ \texttt{val})}
 \end{prooftree}
 
-\item (\textbf{integer})
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{(\textbf{int})}
 \UnaryInfC{$n$ \texttt{val}}
 \end{prooftree}
 
-\item (\textbf{boolean})
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{(\textbf{bool})}
 \UnaryInfC{$b$ \texttt{val}}
 \end{prooftree}
 
-
-\item (\textbf{lambda abstraction})
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{(\textbf{lam})}
 \UnaryInfC{$\lambda x.e$ \texttt{val}}
 \end{prooftree}
-\end{itemize}
+\end{minipage}
 
-\subsection{Function Application}
-\begin{itemize}
-\item (\textbf{ap-l})
-\begin{prooftree}
-\AxiomC{$(e_1,\Gs) \longmapsto (e_1',\Gs')$}
-\UnaryInfC{$(e_1\; e_2,\Gs) \longmapsto (e_1'\;e_2,\Gs')$}
-\end{prooftree}
+&
 
-\item (\textbf{ap-r})
-\begin{prooftree}
-\AxiomC{$v$ \texttt{val}}
-\AxiomC{$(e_2,\Gs) \longmapsto (e_2',\Gs')$}
-\BinaryInfC{$(v\; e_2,\Gs) \longmapsto (v\;e_2',\Gs')$}
-\end{prooftree}
-
-\item (\textbf{ap})
-\begin{prooftree}
-\AxiomC{$v$ \texttt{val}}
-\UnaryInfC{$((\lambda x.e)\; v,\Gs) \longmapsto (e[v/x],\Gs)$}
-\end{prooftree}
-\end{itemize}
-
-\subsection{Let}
-\begin{itemize}
-\item (\textbf{let-1})
-\begin{prooftree}
-\AxiomC{$e_1 \longmapsto e_1'$}
-\UnaryInfC{$\mathbf{let}\; x=e_1\;\mathbf{in}\;e_2 \longmapsto \mathbf{let}\; x=e_1'\;\mathbf{in}\;e_2$}
-\end{prooftree}
-
-\item (\textbf{let})
-\begin{prooftree}
-\AxiomC{$v$ \texttt{val}}
-\UnaryInfC{$\mathbf{let}\; x=v\;\mathbf{in}\;e \longmapsto e[v/x]$}
-\end{prooftree}
-\end{itemize}
-
-\section{If}
-\begin{itemize}
-\item (\textbf{if})
+\begin{minipage}{0.63\textwidth}
 \begin{prooftree}
 \AxiomC{$(e_1,\sigma)\longmapsto (e_1',\sigma')$}
+\RightLabel{(\textbf{if})}
 \UnaryInfC{$(\mathbf{if}\; e_1\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (\mathbf{if}\; e_1'\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma')$}
 \end{prooftree}
 
-\item (\textbf{if-true})
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{(\textbf{if-true})}
 \UnaryInfC{$(\mathbf{if}\; \mathbf{true}\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (e_2,\sigma)$}
 \end{prooftree}
 
-\item (\textbf{if-false})
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{(\textbf{if-false})}
 \UnaryInfC{$(\mathbf{if}\; \mathbf{false}\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (e_3,\sigma)$}
 \end{prooftree}
-\end{itemize}
-\subsection{References}
-\begin{itemize}
-\item (\textbf{ref-e})
+\end{minipage}
+
+\\
+\\
+
+values & function application
+
+\end{tabular}
+
+\begin{tabular}{cc}
+\begin{minipage}{0.48\textwidth}
+\begin{prooftree}
+\AxiomC{$e_1 \longmapsto e_1'$}
+\RightLabel{(\textbf{let-e})}
+\UnaryInfC{$\mathbf{let}\; x=e_1\;\mathbf{in}\;e_2 \longmapsto \mathbf{let}\; x=e_1'\;\mathbf{in}\;e_2$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\RightLabel{(\textbf{let})}
+\UnaryInfC{$\mathbf{let}\; x=v\;\mathbf{in}\;e \longmapsto e[v/x]$}
+\end{prooftree}
+\end{minipage}
+&
+\begin{minipage}{0.48\textwidth}
+\begin{prooftree}
+\AxiomC{$(e_1,\Gs) \longmapsto (e_1',\Gs')$}
+\RightLabel{(\textbf{ap-l})}
+\UnaryInfC{$(e_1\; e_2,\Gs) \longmapsto (e_1'\;e_2,\Gs')$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\AxiomC{$(e_2,\Gs) \longmapsto (e_2',\Gs')$}
+\RightLabel{(\textbf{ap-r})}
+\BinaryInfC{$(v\; e_2,\Gs) \longmapsto (v\;e_2',\Gs')$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\RightLabel{(\textbf{ap})}
+\UnaryInfC{$((\lambda x.e)\; v,\Gs) \longmapsto (e[v/x],\Gs)$}
+\end{prooftree}
+\end{minipage}
+
+\\
+\\
+
+\texttt{let}--expression & \texttt{if}--expression
+
+\end{tabular}
+
+\begin{tabular}{cc}
+\begin{minipage}{0.48\textwidth}
 \begin{prooftree}
 \AxiomC{$(e,\sigma)\longmapsto(e',\sigma')$}
+\RightLabel{(\textbf{ref-e})}
 \UnaryInfC{$(\mathit{ref}\,e,\sigma) \longmapsto (\mathit{ref}\,e',\sigma')$}
 \end{prooftree}
 
-\item (\textbf{ref})
 \begin{prooftree}
 \AxiomC{$v$ \texttt{val}}
 \AxiomC{$l\not\in\text{dom}(\sigma)$}
+\RightLabel{(\textbf{ref})}
 \BinaryInfC{$(\mathit{ref}\,v,\sigma) \longmapsto (l,\sigma[l\mapsto v])$}
 \end{prooftree}
 
-\item (\textbf{deref-e})
 \begin{prooftree}
 \AxiomC{$(e,\sigma)\longmapsto(e',\sigma')$}
+\RightLabel{(\textbf{deref-e})}
 \UnaryInfC{$(!e,\sigma) \longmapsto (!e',\sigma')$}
 \end{prooftree}
 
-\item (\textbf{deref})
 \begin{prooftree}
 \AxiomC{$l$ \texttt{val}}
 \AxiomC{$l\in \text{dom}(\sigma)$}
+\RightLabel{(\textbf{deref})}
 \BinaryInfC{$(!l,\sigma) \longmapsto (\sigma(l),\sigma)$}
 \end{prooftree}
+\end{minipage}
 
-\item (\textbf{set-l})
+&
+
+\begin{minipage}{0.48\textwidth}
 \begin{prooftree}
 \AxiomC{$(e_1,\Gs) \longmapsto (e_1',\Gs')$}
+\RightLabel{(\textbf{set-l})}
 \UnaryInfC{$(e_1:=e_2,\Gs) \longmapsto (e_1':=e_2,\Gs')$}
 \end{prooftree}
 
-\item (\textbf{set-r})
 \begin{prooftree}
 \AxiomC{$l$ \texttt{val}}
 \AxiomC{$(e_2,\Gs) \longmapsto (e_2',\Gs')$}
+\RightLabel{(\textbf{set-r})}
 \BinaryInfC{$(l:=e_2,\Gs) \longmapsto (l:=e_2',\Gs')$}
 \end{prooftree}
 
-\item (\textbf{set})
 \begin{prooftree}
 \AxiomC{$l\in\text{dom}(\sigma)$}
 \AxiomC{$v$ \texttt{val}}
+\RightLabel{(\textbf{set})}
 \BinaryInfC{$(l:=v,\Gs) \longmapsto (\unit,\Gs[l\mapsto v]$}
 \end{prooftree}
-\end{itemize}
+\end{minipage}
+
+\\
+\\
+\multicolumn{2}{c}{references}
+
+\end{tabular}
+
+
 \end{document}
