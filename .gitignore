@@ -11,3 +11,10 @@ lexer.lex.sml
 parser.grm.sig
 parser.grm.sml
 parser.grm.desc
+
+# LaTeX files
+*.aux
+*.dvi
+*.log
+*.synctex.gz
+
