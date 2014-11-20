@@ -1,0 +1,247 @@
+\documentclass[]{article}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[margin=3cm]{geometry}
+\usepackage{bussproofs}
+
+\input{mathdef.tex}
+
+% for Haskell/Agda code
+\usepackage{listings}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\newcommand{\unit}{\text{\texttt{()}}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\bN}{$\N$}
+\newcommand{\uu}{\text{\_}}
+\newcommand{\cons}{\coloncolon}
+\newcommand{\GG}{\Gamma}
+\newcommand{\Gg}{\gamma}
+\newcommand{\GD}{\Delta}
+\newcommand{\Gd}{\delta}
+\newcommand{\Ga}{\alpha}
+\newcommand{\Gb}{\beta}
+\newcommand{\Gt}{\tau}
+\newcommand{\Gn}{\eta}
+\newcommand{\GS}{\Sigma}
+\newcommand{\Gs}{\sigma}
+\newcommand{\GL}{\Lambda}
+\newcommand{\Gl}{\lambda}
+\newcommand{\A}[1]{\Pi[#1]\;}
+\newcommand{\As}[1]{\Pi\;#1\;}
+\newcommand{\E}[1]{\Sigma[#1]\;}
+\newcommand{\Es}[1]{\Sigma\;#1\;}
+\newcommand{\entails}{\;\;\vdash\;\;}
+\newcommand{\lam}[1]{\lambda #1.\;}
+\newcommand{\fst}{\mathtt{fst}\,}
+\newcommand{\snd}{\mathtt{snd}\,}
+\newcommand{\injl}{\mathtt{left}\,}
+\newcommand{\injr}{\mathtt{right}\,}
+\newcommand{\case}{\mathtt{case}\,}
+
+\makeatletter
+\newcommand*\idstyle{%
+        \expandafter\id@style\the\lst@token\relax
+}
+\def\id@style#1#2\relax{%
+  \ifcat#1\relax\else
+    \ifnum`#1<\uccode`#1%
+      \it
+    \else
+      \ifnum`#1>\uccode`#1%
+        \it
+      \fi
+    \fi
+  \fi
+}
+\makeatother
+
+\lstdefinelanguage{HaskellUlisses} {
+	basicstyle=\linespread{1.2}\selectfont\small,
+	columns=fullflexible,     %%
+	keepspaces=true,          %%
+	identifierstyle=\idstyle, %%
+	morekeywords={data,class,instance,case,of,where,let,in,do,if,then,else,type,with,newtype,syntax},
+	sensitive=true,
+	morecomment=[l][\small\it\textbf]{--},
+	morecomment=[s][\small\it\textbf]{\{-}{-\}},
+	morestring=[b]",
+	stringstyle=\texttt,
+	showstringspaces=false,
+	numberstyle=\tiny,
+	numberblanklines=true,
+	showspaces=false,
+	breaklines=true,
+	showtabs=false,
+  aboveskip=4pt,
+  belowskip=-13pt
+}
+
+\lstnewenvironment{code}{\lstset{language=HaskellUlisses,mathescape=true}}{}
+
+
+
+\begin{document}
+\title{$\lambda_\text{ref}$ Language Definition}
+\author{suhorng}
+\maketitle
+\section{Overview}
+\section{Syntax}
+The syntax of $\lambda_\text{ref}$ is given below.
+
+\begin{minipage}[t]{\textwidth}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{code}
+v  ::=  $\unit$
+     |    $n\in \N$
+     |    $b\in \mathbb{B}$
+     |    x
+     |    $\Gl$x.e
+\end{code}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{code}
+e  ::=  v
+     |   e$_1$ e$_2$
+     |   let x = e$_1$ in e$_2$
+     |   if e$_1$ then e$_2$ else e$_3$
+     |   ref e
+     |   !e
+     |   e$_1$ := e$_2$
+\end{code}
+\end{minipage}
+\end{minipage}
+\section{Small Step Semantics}
+\subsection{Values}
+\begin{itemize}
+\item (\textbf{unit})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$\unit$ \texttt{val}}
+\end{prooftree}
+
+\item (\textbf{integer})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$n$ \texttt{val}}
+\end{prooftree}
+
+\item (\textbf{boolean})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$b$ \texttt{val}}
+\end{prooftree}
+
+
+\item (\textbf{lambda abstraction})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$\lambda x.e$ \texttt{val}}
+\end{prooftree}
+\end{itemize}
+
+\subsection{Function Application}
+\begin{itemize}
+\item (\textbf{ap-l})
+\begin{prooftree}
+\AxiomC{$(e_1,\Gs) \longmapsto (e_1',\Gs')$}
+\UnaryInfC{$(e_1\; e_2,\Gs) \longmapsto (e_1'\;e_2,\Gs')$}
+\end{prooftree}
+
+\item (\textbf{ap-r})
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\AxiomC{$(e_2,\Gs) \longmapsto (e_2',\Gs')$}
+\BinaryInfC{$(v\; e_2,\Gs) \longmapsto (v\;e_2',\Gs')$}
+\end{prooftree}
+
+\item (\textbf{ap})
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\UnaryInfC{$((\lambda x.e)\; v,\Gs) \longmapsto (e[v/x],\Gs)$}
+\end{prooftree}
+\end{itemize}
+
+\subsection{Let}
+\begin{itemize}
+\item (\textbf{let-1})
+\begin{prooftree}
+\AxiomC{$e_1 \longmapsto e_1'$}
+\UnaryInfC{$\mathbf{let}\; x=e_1\;\mathbf{in}\;e_2 \longmapsto \mathbf{let}\; x=e_1'\;\mathbf{in}\;e_2$}
+\end{prooftree}
+
+\item (\textbf{let})
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\UnaryInfC{$\mathbf{let}\; x=v\;\mathbf{in}\;e \longmapsto e[v/x]$}
+\end{prooftree}
+\end{itemize}
+
+\section{If}
+\begin{itemize}
+\item (\textbf{if})
+\begin{prooftree}
+\AxiomC{$(e_1,\sigma)\longmapsto (e_1',\sigma')$}
+\UnaryInfC{$(\mathbf{if}\; e_1\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (\mathbf{if}\; e_1'\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma')$}
+\end{prooftree}
+
+\item (\textbf{if-true})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$(\mathbf{if}\; \mathbf{true}\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (e_2,\sigma)$}
+\end{prooftree}
+
+\item (\textbf{if-false})
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$(\mathbf{if}\; \mathbf{false}\; \mathbf{then}\; e_2\; \mathbf{else}\; e_3, \sigma) \longmapsto (e_3,\sigma)$}
+\end{prooftree}
+\end{itemize}
+\subsection{References}
+\begin{itemize}
+\item (\textbf{ref-e})
+\begin{prooftree}
+\AxiomC{$(e,\sigma)\longmapsto(e',\sigma')$}
+\UnaryInfC{$(\mathit{ref}\,e,\sigma) \longmapsto (\mathit{ref}\,e',\sigma')$}
+\end{prooftree}
+
+\item (\textbf{ref})
+\begin{prooftree}
+\AxiomC{$v$ \texttt{val}}
+\AxiomC{$l\not\in\text{dom}(\sigma)$}
+\BinaryInfC{$(\mathit{ref}\,v,\sigma) \longmapsto (l,\sigma[l\mapsto v])$}
+\end{prooftree}
+
+\item (\textbf{deref-e})
+\begin{prooftree}
+\AxiomC{$(e,\sigma)\longmapsto(e',\sigma')$}
+\UnaryInfC{$(!e,\sigma) \longmapsto (!e',\sigma')$}
+\end{prooftree}
+
+\item (\textbf{deref})
+\begin{prooftree}
+\AxiomC{$l$ \texttt{val}}
+\AxiomC{$l\in \text{dom}(\sigma)$}
+\BinaryInfC{$(!l,\sigma) \longmapsto (\sigma(l),\sigma)$}
+\end{prooftree}
+
+\item (\textbf{set-l})
+\begin{prooftree}
+\AxiomC{$(e_1,\Gs) \longmapsto (e_1',\Gs')$}
+\UnaryInfC{$(e_1:=e_2,\Gs) \longmapsto (e_1':=e_2,\Gs')$}
+\end{prooftree}
+
+\item (\textbf{set-r})
+\begin{prooftree}
+\AxiomC{$l$ \texttt{val}}
+\AxiomC{$(e_2,\Gs) \longmapsto (e_2',\Gs')$}
+\BinaryInfC{$(l:=e_2,\Gs) \longmapsto (l:=e_2',\Gs')$}
+\end{prooftree}
+
+\item (\textbf{set})
+\begin{prooftree}
+\AxiomC{$l\in\text{dom}(\sigma)$}
+\AxiomC{$v$ \texttt{val}}
+\BinaryInfC{$(l:=v,\Gs) \longmapsto (\unit,\Gs[l\mapsto v]$}
+\end{prooftree}
+\end{itemize}
+\end{document}
