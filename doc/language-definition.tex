@@ -164,7 +164,7 @@ values & \texttt{if}--expression
 \AxiomC{$v$ \texttt{val}}
 \AxiomC{$l\not\in\text{dom}(\sigma)$}
 \RightLabel{(\textbf{ref})}
-\BinaryInfC{$(\mathit{ref}\,v,\sigma) \longmapsto (l,\sigma[l\mapsto v])$}
+\BinaryInfC{$(\mathit{ref}\,v,\sigma) \longmapsto (l,\sigma[l:= v])$}
 \end{prooftree}
 
 \begin{prooftree}
@@ -201,7 +201,7 @@ values & \texttt{if}--expression
 \AxiomC{$l\in\text{dom}(\sigma)$}
 \AxiomC{$v$ \texttt{val}}
 \RightLabel{(\textbf{set})}
-\BinaryInfC{$(l:=v,\Gs) \longmapsto (\unit,\Gs[l\mapsto v])$}
+\BinaryInfC{$(l:=v,\Gs) \longmapsto (\unit,\Gs[l:= v])$}
 \end{prooftree}
 \end{minipage}
 
