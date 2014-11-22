@@ -1,0 +1,124 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{bussproofs}
+
+\input{mathdef.tex}
+\input{haskell-lst.tex}
+
+\begin{document}
+\title{Normalized Core Language}
+\author{suhorng}
+\maketitle
+\section{Introduction}
+\section{Syntax}
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+v  ::=  $\unit$
+    |     $n\in\N$
+    |     $b\in\mathbb{B}$
+    |     x
+\end{code}
+
+\end{minipage}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+f  ::=  $\Gl$x.e
+    |    v v
+    |    ref v
+    |    !v
+    |    v := v
+\end{code}
+
+\end{minipage}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+e  ::=  v
+    |    let x = f in e
+    |    if v then e$_1$ else e$_2$
+\end{code}
+
+\end{minipage}
+\end{minipage}
+\section{Transforming to NCL}
+
+\section{An Abstract Machine}
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.50\textwidth}
+
+\subsection{computation}
+Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
+\begin{itemize}
+\item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,\Gl x.e), \Gk'\rangle$
+\item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$ where
+
+\begin{itemize}
+\item $\langle\mathbf{cl}\; \GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
+\item $l\not\in\dom(\Gs)$
+\item $\GG''=\GG'[x'\mapsto l]$
+\item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$, where
+
+\begin{itemize}
+  \item $l\not\in\dom(\Gs)$
+  \item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',\Gk\rangle \longmapsto \langle\Gs, \Gs(\Gg(\GG,\Gs,v)),\Gk'\rangle$
+\item $\langle\GG,\Gs,(v_1\; \text{\texttt{:=}}\; v_2),y,e',\Gk\rangle \longmapsto \langle\Gs',\langle\mathbf{unit}\rangle,\Gk'\rangle$ where
+
+\begin{itemize}
+\item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v_1)$ and $l\in\dom(\Gs)$
+\item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v_2)]$
+\end{itemize}
+\end{itemize}
+
+\end{minipage}
+\begin{minipage}[t]{0.50\textwidth}
+
+\subsection{expressions}
+\begin{itemize}
+\item $\langle\GG,\Gs,v,\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,v),\Gk \rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\GG,\Gs,f,x, e, \Gk\rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{if}\; v\; \mathtt{then}\; e_1\; \mathtt{else}\; e_2),\Gk\rangle \longmapsto \langle\GG,\Gs, e, \Gk\rangle$, where
+
+$\displaystyle e = \left\{\begin{array}{rl}
+e_1, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{true}\rangle \\
+e_2, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{false}\rangle
+\end{array}\right.$
+\end{itemize}
+
+\subsection{values}
+
+\begin{itemize}
+\item $\langle\Gs,v,\langle\mathbf{frame}\; \GG,x,e,\Gk\rangle\rangle \longmapsto \langle\GG',\Gs',e,\Gk\rangle$, where
+\begin{itemize}
+\item $l\not\in\dom(\Gs)$
+\item $\GG' = \GG[x\mapsto l]$
+\item $\Gs' = \Gs[l\mapsto v]$
+\end{itemize}
+\end{itemize}
+
+The function $\Gg(\GG,\Gs,v)$ is defined by
+
+\begin{itemize}
+  \item $\Gg(\GG,\Gs,\unit) = \langle\mathbf{unit}\rangle$
+  \item $\Gg(\GG,\Gs,n) = \langle\mathbf{int}\; n\rangle$
+  \item $\Gg(\GG,\Gs,b) = \langle\mathbf{bool}\; b\rangle$
+  \item $\Gg(\GG,\Gs,x) = \Gs(\GG(x))$
+  \item $\Gg(\GG,\Gs,\Gl x.e) = \langle\mathbf{cl}\; \GG,x,e\rangle$
+\end{itemize}
+
+\end{minipage}
+\end{minipage}
+
+\end{document}
