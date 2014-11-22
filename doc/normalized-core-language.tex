@@ -60,15 +60,15 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \begin{itemize}
 \item $\langle\mathbf{cl}\; \GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
 \item $l\not\in\dom(\Gs)$
-\item $\GG''=\GG'[x'\mapsto l]$
-\item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
+\item $\GG''=\GG'[x':= l]$
+\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v)]$
 \end{itemize}
 
 \item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$
 
 \begin{itemize}
   \item $l\not\in\dom(\Gs)$
-  \item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
+  \item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v)]$
 \end{itemize}
 
 \item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',\Gk\rangle \longmapsto \langle\Gs, \Gs(l),\Gk'\rangle$
@@ -81,7 +81,7 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 
 \begin{itemize}
 \item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v_1)$ and $l\in\dom(\Gs)$
-\item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v_2)]$
+\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v_2)]$
 \end{itemize}
 \end{itemize}
 
@@ -111,8 +111,8 @@ e_2, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{false}\rangle
 \item $\langle\Gs,v,\langle\mathbf{frame}\; \GG,x,e,\Gk\rangle\rangle \longmapsto \langle\GG',\Gs',e,\Gk\rangle$
 \begin{itemize}
 \item $l\not\in\dom(\Gs)$
-\item $\GG' = \GG[x\mapsto l]$
-\item $\Gs' = \Gs[l\mapsto v]$
+\item $\GG' = \GG[x:= l]$
+\item $\Gs' = \Gs[l:= v]$
 \end{itemize}
 \end{itemize}
 
