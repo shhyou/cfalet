@@ -55,7 +55,7 @@ e  ::=  v
 Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \begin{itemize}
 \item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,\Gl x.e), \Gk'\rangle$
-\item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$ where
+\item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$
 
 \begin{itemize}
 \item $\langle\mathbf{cl}\; \GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
@@ -64,15 +64,20 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
 \end{itemize}
 
-\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$, where
+\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$
 
 \begin{itemize}
   \item $l\not\in\dom(\Gs)$
   \item $\Gs'=\Gs[l\mapsto \Gg(\GG,\Gs,v)]$
 \end{itemize}
 
-\item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',\Gk\rangle \longmapsto \langle\Gs, \Gs(\Gg(\GG,\Gs,v)),\Gk'\rangle$
-\item $\langle\GG,\Gs,(v_1\; \text{\texttt{:=}}\; v_2),y,e',\Gk\rangle \longmapsto \langle\Gs',\langle\mathbf{unit}\rangle,\Gk'\rangle$ where
+\item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',\Gk\rangle \longmapsto \langle\Gs, \Gs(l),\Gk'\rangle$
+
+\begin{itemize}
+\item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v_1)$ and $l\in\dom(\Gs)$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(v_1\; \text{\texttt{:=}}\; v_2),y,e',\Gk\rangle \longmapsto \langle\Gs',\langle\mathbf{unit}\rangle,\Gk'\rangle$
 
 \begin{itemize}
 \item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v_1)$ and $l\in\dom(\Gs)$
@@ -89,18 +94,21 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 
 \item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\GG,\Gs,f,x, e, \Gk\rangle$
 
-\item $\langle\GG,\Gs,(\mathtt{if}\; v\; \mathtt{then}\; e_1\; \mathtt{else}\; e_2),\Gk\rangle \longmapsto \langle\GG,\Gs, e, \Gk\rangle$, where
+\item $\langle\GG,\Gs,(\mathtt{if}\; v\; \mathtt{then}\; e_1\; \mathtt{else}\; e_2),\Gk\rangle \longmapsto \langle\GG,\Gs, e, \Gk\rangle$
 
-$\displaystyle e = \left\{\begin{array}{rl}
+\begin{itemize}
+  \item $\displaystyle e = \left\{\begin{array}{rl}
 e_1, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{true}\rangle \\
 e_2, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{false}\rangle
 \end{array}\right.$
+
+\end{itemize}
 \end{itemize}
 
 \subsection{values}
 
 \begin{itemize}
-\item $\langle\Gs,v,\langle\mathbf{frame}\; \GG,x,e,\Gk\rangle\rangle \longmapsto \langle\GG',\Gs',e,\Gk\rangle$, where
+\item $\langle\Gs,v,\langle\mathbf{frame}\; \GG,x,e,\Gk\rangle\rangle \longmapsto \langle\GG',\Gs',e,\Gk\rangle$
 \begin{itemize}
 \item $l\not\in\dom(\Gs)$
 \item $\GG' = \GG[x\mapsto l]$
