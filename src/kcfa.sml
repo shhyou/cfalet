@@ -57,11 +57,4 @@ fun eval (cxt, sigma, NCL.Value NCL.Unit) = (sigma, ValSet.singleton Unit)
   | eval (cxt, sigma, NCL.Value (NCL.Int n)) = (sigma, ValSet.singleton (Int n))
   | eval (cxt, sigma, NCL.Value (NCL.Bool b)) = (sigma, ValSet.singleton (Bool b))
   | eval (cxt, sigma, NCL.Value (NCL.Var x)) = (sigma, valOf (Map.find (sigma, EnvStr.lookup x cxt)))
-  | eval (cxt, sigma, NCL.LetLam (f, x, e1, e2)) = raise Undefined
-  | eval (cxt, sigma, NCL.Ap (NCL.Var x, e2)) =
-      let
-      in
-        raise Undefined
-      end
-  | eval (cxt, sigma, NCL.Ap (e1, e2)) = raise Undefined
 end
