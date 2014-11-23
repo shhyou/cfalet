@@ -7,7 +7,7 @@ struct
     | Var of string
   and t =
       Value of v
-    | Alias of string * v * t
+    | LetVal of string * v * t
     | Let of string * comp * t
     | If of v * t * t
   and comp =
@@ -43,7 +43,7 @@ struct
             mkLet (Ap (v1, v2), k)))
     | normalizeK (AST.Let (x, e1, e2)) k =
         normalizeK e1 (fn v1 =>
-          Alias (x, v1,
+          LetVal (x, v1,
           normalizeK e2 k))
     | normalizeK (AST.If (e1, e2, e3)) k =
         normalizeK e1 (fn v1 =>
@@ -99,8 +99,8 @@ struct
     | mkStringAuxC pred indent (Set (v1, v2)) =
         addParen (pred > 4) (mkStringAuxV 10 v1 ^ " := " ^ mkStringAuxV 10 v2)
   and mkStringAux pred indent (Value v) = mkStringAuxV pred v
-    | mkStringAux pred indent (Alias (x, v, e)) =
-        addParen (pred > 0) ("alias " ^ x ^ " = " ^ mkStringAuxV 0 v ^ " in\n"
+    | mkStringAux pred indent (LetVal (x, v, e)) =
+        addParen (pred > 0) ("let/val " ^ x ^ " = " ^ mkStringAuxV 0 v ^ " in\n"
                             ^ indent ^ mkStringAux 0 indent e)
     | mkStringAux pred indent (Let (x, e1, e2)) =
         addParen (pred > 0) ("let " ^ x ^ " = " ^ mkStringAuxC 0 indent e1 ^ " in\n"
