@@ -39,6 +39,7 @@ f  ::=  $\Gl$x.e
 
 \begin{code}
 e  ::=  v
+    |    let x = v in e
     |    let x = f in e
     |    if v then e$_1$ else e$_2$
 \end{code}
@@ -48,11 +49,12 @@ e  ::=  v
 \section{Transforming to NCL}
 
 \section{An Abstract Machine}
+Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
+
 \begin{minipage}{\textwidth}
 \begin{minipage}[t]{0.50\textwidth}
 
 \subsection{computation}
-Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \begin{itemize}
 \item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,\Gl x.e), \Gk'\rangle$
 \item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$
@@ -91,6 +93,8 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \subsection{expressions}
 \begin{itemize}
 \item $\langle\GG,\Gs,v,\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,v),\Gk \rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; y=v\; \mathtt{in}\; e'),\Gk\rangle \longmapsto \langle\Gs,\Gg(\GG,\Gs,v),\Gk'\rangle$
 
 \item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\GG,\Gs,f,x, e, \Gk\rangle$
 
