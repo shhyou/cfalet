@@ -49,6 +49,14 @@ e  ::=  v
 \section{Transforming to NCL}
 
 \section{An Abstract Machine}
+\[\begin{aligned}
+\text{Addr} &\equiv (\text{left abstract})\\
+\text{Val} &\equiv \langle\mathbf{unit}\rangle \;|\; \langle\mathbf{int}\; \Z\rangle \;|\; \langle\mathbf{bool}\; \mathbb{B}\rangle \;|\; \langle\mathbf{ref}\; \text{Addr}\rangle \;|\; \langle\mathbf{cl}\; \text{Var}, \text{Env}, \text{Var}, e\rangle\\
+\GG \in \text{Env} &\equiv \text{Var} \to \text{Addr}\\
+\Gs \in \text{Store} &\equiv \text{Addr} \to \text{Value} \\
+\Gk \in \text{Kont} &\equiv \langle\mathbf{halt}\rangle \;|\; \langle\mathbf{frame}\; \text{Env}, \text{Var}, e, \text{Kont}\rangle
+\end{aligned}\]
+
 \begin{minipage}{\textwidth}
 \begin{minipage}[t]{0.50\textwidth}
 
@@ -65,10 +73,10 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$
 
 \begin{itemize}
-\item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
+\item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle=\Gg(\GG,\Gs,v_1)$
 \item $l\not\in\dom(\Gs)$
 \item $\GG''=\GG'[x':= l]$
-\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v)]$
+\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v_2)]$
 \end{itemize}
 
 \item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$
