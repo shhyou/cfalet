@@ -49,18 +49,23 @@ e  ::=  v
 \section{Transforming to NCL}
 
 \section{An Abstract Machine}
-Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
-
 \begin{minipage}{\textwidth}
 \begin{minipage}[t]{0.50\textwidth}
 
 \subsection{computation}
+Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
+
 \begin{itemize}
-\item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,\Gl x.e), \Gk'\rangle$
+\item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,v, \Gk'\rangle$
+
+\begin{itemize}
+\item $v = \langle\mathbf{cl}\; y,\GG,x,e\rangle$
+\end{itemize}
+
 \item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$
 
 \begin{itemize}
-\item $\langle\mathbf{cl}\; \GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
+\item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle=\Gg(\GG,\Gs,x)$
 \item $l\not\in\dom(\Gs)$
 \item $\GG''=\GG'[x':= l]$
 \item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v)]$
@@ -94,7 +99,11 @@ Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
 \begin{itemize}
 \item $\langle\GG,\Gs,v,\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,v),\Gk \rangle$
 
-\item $\langle\GG,\Gs,(\mathtt{let}\; y=v\; \mathtt{in}\; e'),\Gk\rangle \longmapsto \langle\Gs,\Gg(\GG,\Gs,v),\Gk'\rangle$
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=v\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\Gs,\Gg(\GG,\Gs,v),\Gk'\rangle$
+
+\begin{itemize}
+\item $\Gk' = \langle\mathbf{frame}\; \GG,x,e,\Gk\rangle$.
+\end{itemize}
 
 \item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\GG,\Gs,f,x, e, \Gk\rangle$
 
@@ -120,14 +129,13 @@ e_2, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{false}\rangle
 \end{itemize}
 \end{itemize}
 
-The function $\Gg(\GG,\Gs,v)$ is defined by
+The function $\Gg : \text{Env}\times \text{Store}\times v\to \text{Val}$ is defined by
 
 \begin{itemize}
   \item $\Gg(\GG,\Gs,\unit) = \langle\mathbf{unit}\rangle$
   \item $\Gg(\GG,\Gs,n) = \langle\mathbf{int}\; n\rangle$
   \item $\Gg(\GG,\Gs,b) = \langle\mathbf{bool}\; b\rangle$
   \item $\Gg(\GG,\Gs,x) = \Gs(\GG(x))$
-  \item $\Gg(\GG,\Gs,\Gl x.e) = \langle\mathbf{cl}\; \GG,x,e\rangle$
 \end{itemize}
 
 \end{minipage}
