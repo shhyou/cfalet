@@ -17,6 +17,12 @@ datatype storable =
   | Frame of string * env * NCL.t * addr
   | Halt
 
+fun toString Const = "<Const>"
+  | toString (Ref l) = "<Ref " ^ Int.toString l ^ ">"
+  | toString (Cl (tag, env, x, e)) = "<Cl " ^ tag ^ ">"
+  | toString (Frame (x, env, e, l)) = "<Frame " ^ x ^ "/" ^ Int.toString l ^ ">"
+  | toString Halt = "<Halt>"
+
 structure PowVal = BinarySetFn(struct
   type ord_key = storable
 
@@ -42,7 +48,7 @@ type store = PowVal.set Map.map
 local
   val cnt = ref 0
   fun alloc_map map =
-    ( fn () => map
+    ( fn () => !map
     , fn x =>
         EnvStr.lookup x (!map) handle EnvStr.NotFound _ =>
           let
@@ -145,5 +151,30 @@ and eval (cxt, store, NCL.Value v, l) = return (store, gamma (cxt, store, v), l)
 
 val kont0 = allocK ""
 val store0 = Map.insert (Map.empty, kont0, PowVal.singleton Halt)
+
+fun test expr =
+  let
+    val res' = eval (EnvStr.empty, store0, expr, kont0)
+    val res = List.map (List.map (fn (k, v) => (k, PowVal.listItems v)) o Map.listItemsi) res'
+
+    val varEnv = getAllocMap ()
+    val kontEnv = getAllocKMap ()
+
+    fun showPowset set = "{" ^ String.concatWith "," (List.map toString set) ^ "}"
+
+    fun showStore store =
+      "[" ^ String.concatWith ", " (List.map (fn (k,v) => Int.toString k ^ ":" ^ showPowset v) store) ^ "]"
+  in
+    print ("program\n" ^ NCL.toString expr ^ "\n=====\n");
+    print ("env:  [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) varEnv) ^ "]\n");
+    print ("kenv: [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) kontEnv) ^ "]\n");
+    print ("[\n" ^ String.concatWith ",\n\n" (List.map showStore res) ^ "\n]\n")
+  end
+
+(* To enable stack trace:
+   http://blog.clawpaws.net/post/2007/02/16/Getting-Backtraces-with-Standard-ML
+    CM.make "$smlnj-tdp/back-trace.cm";
+    SMLofNJ.Internals.TDP.mode := true;
+ *)
 
 end
