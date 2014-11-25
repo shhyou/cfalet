@@ -38,14 +38,14 @@ Let $\Gs'=\Gs\sqcup[l'\mapsto\set{\langle\mathbf{frame}\; \GG,y,e',l\rangle}]$ w
 \begin{itemize}
 \item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle\in\Gg(\GG,\Gs,v_1)$
 \item $l''=\mathit{new}(x',\Gs)$
-\item $\GG''=\GG'[x':=l]$
+\item $\GG''=\GG'[x':=l'']$
 \item $\Gs''=\Gs'\sqcup[l''\mapsto\Gg(\GG,\Gs,v_2)]$
 \end{itemize}
 
-\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',l\rangle \longmapsto \langle\Gs'', \set{\langle\mathbf{ref}\; l\rangle},l'\rangle$
+\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',l\rangle \longmapsto \langle\Gs'', \set{\langle\mathbf{ref}\; l''\rangle},l'\rangle$
 
 \begin{itemize}
-  \item $l''=\mathit{new}(y,\Gs)$
+  \item $l''=\mathit{new}(\Gs)$
   \item $\Gs''=\Gs'\sqcup[l''\mapsto\Gg(\GG,\Gs,v)]$
 \end{itemize}
 
