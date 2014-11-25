@@ -13,7 +13,7 @@ struct
   and comp =
       Lam of string * t
     | Ap of v * v
-    | Ref of v
+    | Ref of string * v
     | Deref of v
     | Set of v * v
 
@@ -56,7 +56,7 @@ struct
                 normalizeK e2 (fn v => mkLet (Ap (Var k_var, v), Value)),
                 normalizeK e3 (fn v => mkLet (Ap (Var k_var, v), Value))))
           end)
-    | normalizeK (AST.Ref e) k = normalizeK e (fn v => mkLet (Ref v, k))
+    | normalizeK (AST.Ref e) k = normalizeK e (fn v => mkLet (Ref (fresh (), v), k))
     | normalizeK (AST.Deref e) k = normalizeK e (fn v => mkLet (Deref v, k))
     | normalizeK (AST.Set (e1, e2)) k =
         normalizeK e1 (fn v1 =>
@@ -92,7 +92,7 @@ struct
         addParen (pred > 0) ("fn " ^ x ^ block indent " =>" (mkStringAux 0) e)
     | mkStringAuxC pred indent (Ap (e1, e2)) =
         addParen (pred >= 10) (mkStringAuxV 9 e1 ^ " " ^ mkStringAuxV 10 e2)
-    | mkStringAuxC pred indent (Ref v) =
+    | mkStringAuxC pred indent (Ref (tag, v)) =
         addParen (pred >= 10) ("ref " ^ mkStringAuxV 10 v)
     | mkStringAuxC pred indent (Deref v) =
         addParen (pred > 8) ("!" ^ mkStringAuxV 10 v)

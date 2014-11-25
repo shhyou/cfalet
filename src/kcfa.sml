@@ -141,9 +141,9 @@ and comp (cxt, store, expr, y, e', l, stores) =
         in
           PowVal.foldl collectEval stores v1'
         end
-      | doIt (NCL.Ref v) =
+      | doIt (NCL.Ref (tag, v)) =
         let
-          val l'' = alloc NONE
+          val l'' = alloc (SOME tag)
           val store'' = storeInsert (store', l'', gamma (cxt, store, v))
         in
           return (store'', PowVal.singleton (Ref l''), l', stores)
@@ -192,7 +192,7 @@ val stores0 = Stores.add (Stores.empty, ("", store0))
 fun test expr =
   let
     val res' = Stores.listItems (eval (EnvStr.empty, store0, expr, kont0, stores0))
-    val res = List.map (ValMap.listItemsi o #2) res'
+    val res = List.map (fn (x,st) => (x, ValMap.listItemsi st)) res'
 
     val varEnv = getAllocMap ()
     val kontEnv = getAllocKMap ()
@@ -200,7 +200,7 @@ fun test expr =
     print ("program\n" ^ NCL.toString expr ^ "\n=====\n");
     print ("env:  [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) varEnv) ^ "]\n");
     print ("kenv: [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) kontEnv) ^ "]\n");
-    print ("[\n" ^ String.concatWith ",\n\n" (List.map ValMap.toString res) ^ "\n]\n")
+    print ("[\n" ^ String.concatWith ",\n\n" (List.map (fn (x, st) => x ^ ":\n" ^ ValMap.toString st) res) ^ "\n]\n")
   end
 
 (* To enable stack trace:
