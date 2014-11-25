@@ -68,20 +68,13 @@ local
   fun alloc_map map =
     ( fn () => !map
     , fn () => (map := EnvStr.extend ("", 0) EnvStr.empty; cnt := 1)
-    , fn (SOME x) =>
-          (EnvStr.lookup x (!map) handle _ =>
-            let
-              val addr = !cnt
-            in
-              cnt := !cnt + 1;
-              map := EnvStr.extend (x, addr) (!map);
-              addr
-            end)
-       | NONE =>
+    , fn x =>
+        EnvStr.lookup x (!map) handle _ =>
           let
             val addr = !cnt
           in
             cnt := !cnt + 1;
+            map := EnvStr.extend (x, addr) (!map);
             addr
           end )
 in
@@ -105,7 +98,7 @@ fun return (store, values, kont, stores) =
   let
     fun collectEval (Frame (x, cxt, e, kont'), stores') =
         let
-          val l = alloc (SOME x)
+          val l = alloc x
           val store' = storeInsert (store, l, values)
           val stores'' = Stores.add (stores', (x, store'))
         in
@@ -121,7 +114,7 @@ fun return (store, values, kont, stores) =
 
 and comp (cxt, store, expr, y, e', l, stores) =
   let
-    val l' = allocK (SOME y)
+    val l' = allocK y
     val store' = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l)))
 
     fun doIt (NCL.Lam (x, e)) = return (store', PowVal.singleton (Cl (y, cxt, x, e)), l', stores)
@@ -130,7 +123,7 @@ and comp (cxt, store, expr, y, e', l, stores) =
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
           fun collectEval (Cl (_, cxt', x', e''), stores') =
               let
-                val l'' = alloc (SOME x')
+                val l'' = alloc x'
                 val store'' = storeInsert (store', l'', v2')
               in
                 if Stores.member (stores', (x', store''))
@@ -143,7 +136,7 @@ and comp (cxt, store, expr, y, e', l, stores) =
         end
       | doIt (NCL.Ref (tag, v)) =
         let
-          val l'' = alloc (SOME tag)
+          val l'' = alloc tag
           val store'' = storeInsert (store', l'', gamma (cxt, store, v))
         in
           return (store'', PowVal.singleton (Ref l''), l', stores)
@@ -172,7 +165,7 @@ and comp (cxt, store, expr, y, e', l, stores) =
 and eval (cxt, store, NCL.Value v, l, stores) = return (store, gamma (cxt, store, v), l, stores)
   | eval (cxt, store, NCL.LetVal (x, v, e), l, stores) =
     let
-      val l' = allocK (SOME x)
+      val l' = allocK x
       val store' = storeInsert (store, l', PowVal.singleton (Frame (x, cxt, e, l)))
     in
       return (store', gamma (cxt, store, v), l', stores)
@@ -185,7 +178,7 @@ and eval (cxt, store, NCL.Value v, l, stores) = return (store, gamma (cxt, store
       eval (cxt, store, e2, l, stores')
     end
 
-val kont0 = allocK NONE
+val kont0 = allocK ""
 val store0 = ValMap.insert (ValMap.empty, kont0, PowVal.singleton Halt)
 val stores0 = Stores.add (Stores.empty, ("", store0))
 
