@@ -12,3 +12,4 @@ Group is
   ../type/type.sml
   ../ncl.sml
   ../kcfa.sml
+  kcfa-main.sml

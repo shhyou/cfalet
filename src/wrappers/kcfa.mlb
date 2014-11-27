@@ -1,0 +1,29 @@
+local
+  (* import libraries *)
+  $(SML_LIB)/basis/basis.mlb    (* the standard library *)
+  $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+  ../envstr.sml
+
+  (* main files *)
+  ../ast.sml
+
+  ../parser/parser.grm.sig
+  ../parser/lexer.lex.sml
+  ../parser/parser.grm.sml
+  ../parser.sml
+
+  ../ncl.sml
+  ../kcfa.sml
+  kcfa-main.sml
+  kcfa-mlton.sml
+in
+  signature ENV_STR
+  structure EnvStr
+
+  structure AST
+  structure NCL
+  structure Parser0
+  structure CFA0
+  structure Main
+end
