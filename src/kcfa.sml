@@ -94,33 +94,24 @@ fun gamma (cxt, store, NCL.Var x) = valOf (ValMap.find (store, EnvStr.lookup x c
   | gamma _ = PowVal.singleton Const
 
 (*  return : <sigma, vs, l> -> { <Gamma', sigma', e, l'> | <frame Gamma, x, e, l'> in sigma(l) } *)
-fun return (store, values, kont, stores) =
+fun return (cxt, store, values, y, e', kont, stores) =
   let
-    fun collectEval (Frame (x, cxt, e, kont'), stores') =
-        let
-          val l = alloc x
-          val store' = storeInsert (store, l, values)
-          val stores'' = Stores.add (stores', (x, store'))
-        in
-          eval (EnvStr.extend (x, l) cxt, store', e, kont', stores'')
-        end
-      | collectEval (Halt, stores') = Stores.add (stores', ("", store))
-      | collectEval _ = raise NotContinuation
-
-    val konts = valOf (ValMap.find (store, kont))
+    val l = alloc y
+    val store' = storeInsert (store, l, values)
+    val stores'' = Stores.add (stores, (y, store'))
   in
-    PowVal.foldl collectEval stores konts
+    eval (EnvStr.extend (y, l) cxt, store', e', kont, stores'')
   end
 
 and comp (cxt, store, expr, y, e', l, stores) =
   let
-    val l' = allocK y
-    val store' = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l)))
-
-    fun doIt (NCL.Lam (x, e)) = return (store', PowVal.singleton (Cl (y, cxt, x, e)), l', stores)
+    fun doIt (NCL.Lam (x, e)) = return (cxt, store, PowVal.singleton (Cl (y, cxt, x, e)), y, e', l, stores)
       | doIt (NCL.Ap (v1, v2)) =
         let
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
+          val l' = allocK y
+          val store' = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l)))
+
           fun collectEval (Cl (_, cxt', x', e''), stores') =
               let
                 val l'' = alloc x'
@@ -137,9 +128,9 @@ and comp (cxt, store, expr, y, e', l, stores) =
       | doIt (NCL.Ref (tag, v)) =
         let
           val l'' = alloc tag
-          val store'' = storeInsert (store', l'', gamma (cxt, store, v))
+          val store'' = storeInsert (store, l'', gamma (cxt, store, v))
         in
-          return (store'', PowVal.singleton (Ref l''), l', stores)
+          return (cxt, store'', PowVal.singleton (Ref l''), y, e', l, stores)
         end
       | doIt (NCL.Deref v) =
         let
@@ -147,29 +138,40 @@ and comp (cxt, store, expr, y, e', l, stores) =
                                    | _ => PowVal.empty)
           val getVal = List.foldl PowVal.union PowVal.empty o getVals
         in
-          return (store', getVal (PowVal.listItems (gamma (cxt, store, v))), l', stores)
+          return (cxt, store, getVal (PowVal.listItems (gamma (cxt, store, v))), y, e', l, stores)
         end
       | doIt (NCL.Set (v1, v2)) =
         let
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
           val store'' = PowVal.foldl (fn (Ref l, st) => storeInsert (st, l, v2')
                                        | (_, st) => st)
-                                     store' v1'
+                                     store v1'
         in
-          return (store'', PowVal.singleton Const, l', stores)
+          return (cxt, store'', PowVal.singleton Const, y, e', l, stores)
         end
   in
     doIt expr
   end
 
-and eval (cxt, store, NCL.Value v, l, stores) = return (store, gamma (cxt, store, v), l, stores)
-  | eval (cxt, store, NCL.LetVal (x, v, e), l, stores) =
+and eval (cxt, store, NCL.Value v, l, stores) =
     let
-      val l' = allocK x
-      val store' = storeInsert (store, l', PowVal.singleton (Frame (x, cxt, e, l)))
+      val values = gamma (cxt, store, v)
+      fun collectEval (Frame (x, cxt, e, kont'), stores') =
+          let
+            val l = alloc x
+            val store' = storeInsert (store, l, values)
+            val stores'' = Stores.add (stores', (x, store'))
+          in
+            eval (EnvStr.extend (x, l) cxt, store', e, kont', stores'')
+          end
+        | collectEval (Halt, stores') = Stores.add (stores', ("", store))
+        | collectEval _ = raise NotContinuation
+
+      val konts = valOf (ValMap.find (store, l))
     in
-      return (store', gamma (cxt, store, v), l', stores)
+      PowVal.foldl collectEval stores konts
     end
+  | eval (cxt, store, NCL.LetVal (x, v, e), l, stores) = return (cxt, store, gamma (cxt, store, v), x, e, l, stores)
   | eval (cxt, store, NCL.Let (x, f, e), l, stores) = comp (cxt, store, f, x, e, l, stores)
   | eval (cxt, store, NCL.If (_, e1, e2), l, stores) =
     let
