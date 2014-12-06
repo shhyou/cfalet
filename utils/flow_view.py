@@ -67,7 +67,7 @@ html_template = """<!DOCTYPE html>
   <pre><code>
 %s
   </code></pre>
-  <div id="related_text" ng-show="mover" ng-init="mover=0; textid=0" ng-attr-style="left: {{mousex + 24}}px; top: {{mousey + 38}}px">{{related_texts[textid]}}</div>
+  <div id="related_text" ng-show="mover" ng-init="mover=0; textid=0" ng-attr-style="left: {{mousex + 18}}px; top: {{mousey + 18}}px">{{related_texts[textid]}}</div>
 </body>
 </html>
 
