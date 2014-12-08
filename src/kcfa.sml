@@ -186,11 +186,40 @@ fun test expr =
 
     val varEnv = getAllocMap ()
     val kontEnv = getAllocKMap ()
+
+    val strippedRes =
+      let
+        fun lookup x = [EnvStr.lookup x varEnv] handle EnvStr.NotFound _ => []
+
+        fun vars (NCL.Value _) = []
+          | vars (NCL.LetVal (x, _, _)) = lookup x
+          | vars (NCL.Let (x, NCL.Lam (y, e1), e2)) =
+              List.concat [lookup x, lookup y, vars e1, vars e2]
+          | vars (NCL.Let (x, _, e2)) = lookup x@vars e2
+          | vars (NCL.If (_, e1, e2)) = vars e1@vars e2
+
+        val excludeAddrs = vars expr
+        fun someEq n = List.exists (fn m => m = n) excludeAddrs
+      in
+        List.filter (not o someEq o #1) res
+      end
+
+    fun mark x =
+      String.concat ["{{", Int.toString (EnvStr.lookup x varEnv), "|", x, "}}"]
+        handle EnvStr.NotFound _ => x
+
+    fun markCode (v as NCL.Value _) = v
+      | markCode (NCL.LetVal (x, v, e)) = NCL.LetVal (mark x, v, markCode e)
+      | markCode (NCL.Let (x, NCL.Lam (y, e1), e2)) =
+          NCL.Let (mark x, NCL.Lam (mark y, markCode e1), markCode e2)
+      | markCode (NCL.Let (x, f, e2)) = NCL.Let (mark x, f, markCode e2)
+      | markCode (NCL.If (v, e1, e2)) = NCL.If (v, markCode e1, markCode e2)
+
   in
-    print ("program\n" ^ NCL.toString expr ^ "\n=====\n");
-    print ("env:  [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) varEnv) ^ "]\n");
-    print ("kenv: [" ^ String.concatWith ", " (List.map (fn (k,v) => k ^ " => " ^ Int.toString v) kontEnv) ^ "]\n");
-    print (ValMap.toString res ^ "\n")
+    print (NCL.toString (markCode expr) ^ "\n=====\n");
+    print (ValMap.toString strippedRes ^ "\n=====\n");
+    List.app (fn (k, v) =>
+      print (PowVal.toString v ^ "\n---\n")) res
   end
 
 (* To enable stack trace:

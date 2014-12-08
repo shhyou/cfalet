@@ -1,4 +1,6 @@
 import argparse
+import re
+from cgi import escape
 
 # Arguments:
 #   1. string: title
@@ -15,6 +17,7 @@ html_template = """<!DOCTYPE html>
   <style type="text/css">
     #main_code {
       font-family: Consolas;
+      cursor: default;
       white-space: pre;
     }
 
@@ -23,10 +26,13 @@ html_template = """<!DOCTYPE html>
       font-size: 80%%;
       background-color: rgb(254,248,189);
       position: absolute;
-      height: 80px;
-      width: 150px;
+      width: 100px;
+      white-space: pre-line;
       border: 1px solid rgb(0,0,0);
-      overflow: auto;
+    }
+
+    pre > code {
+      white-space: pre-wrap;
     }
   </style>
 
@@ -76,7 +82,7 @@ html_template = """<!DOCTYPE html>
 def main(inp, out):
   """
   input file format:
-     (tagged) code
+     (tagged) code,  {{tag1|code1}} abcd {{tag2|code2}} ...
      =====
      store
      =====
@@ -89,18 +95,21 @@ def main(inp, out):
      ...
      ---
      textn
+     ---
   """
   with open(inp, "r") as fin:
-    mark_template ="<span ng-mouseover='show(%d)' ng-mouseleave='mover=0'>%s</span>%s"
-    raw_code, store, raw_texts = fin.read().split("=====\n")
-    helper_texts = "[" + ", ".join(repr(s) for s in raw_texts.split("---\n")) + "]"
+    mark_template ="<span ng-mouseover='show(%s)' ng-mouseleave='mover=0'>%s</span>%s"
+    raw_code, raw_store, raw_texts = fin.read().split("=====\n")
+    helper_texts = "[" + ", ".join(repr(s) for s in raw_texts.split("---\n")[:-1]) + "]"
+
+    store = escape(raw_store)
 
     # pre_code, *tag_codes = raw_code.split("{{")
     raw_code_tmp = raw_code.split("{{")
     pre_code = raw_code_tmp[0]
     tag_codes = raw_code_tmp[1:]
 
-    marks = [mark_template % tuple([i] + s.split("}}")) for i, s in enumerate(tag_codes)]
+    marks = [mark_template % tuple(re.split("\||\}\}", s)) for s in tag_codes]
     marked_code = pre_code + "".join(marks)
   with open(out, "w") as fout:
     fout.write(html_template % (inp + " - View", helper_texts, marked_code, store))
@@ -109,8 +118,8 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Generate CFA result views')
   parser.add_argument("input", help = "input file name")
   parser.add_argument("-o", "--output", metavar = "output",
-                      help = "set output file name; the default is input.html")
+                      help = "set output file name; the default is $input.html")
   args = parser.parse_args()
   if args.output is None:
-    args.output = args.input + ".html"
+    args.output = (args.input.split("/")[-1]).split("\\")[-1] + ".html"
   main(args.input, args.output)
