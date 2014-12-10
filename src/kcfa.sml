@@ -107,11 +107,11 @@ and comp (cxt, store, expr, y, e', l) =
       | doIt (NCL.Ap (v1, v2)) =
         let
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
-          val l' = allocK y
-          val (dirty, store') = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l)))
 
-          fun collectEval (cl as Cl (_, cxt', x', e''), store'') =
+          fun collectEval (cl as Cl (_, cxt', x', e''), store') =
               let
+                val l' = allocK x'
+                val (dirty, store'') = storeInsert (store', l', PowVal.singleton (Frame (y, cxt, e', l)))
                 val l'' = alloc x'
                 val (dirty', store''') = storeInsert (store'', l'', v2')
               in
@@ -121,7 +121,7 @@ and comp (cxt, store, expr, y, e', l) =
               end
             | collectEval (_, store'') = store''
         in
-          PowVal.foldl collectEval store' v1'
+          PowVal.foldl collectEval store v1'
         end
       | doIt (NCL.Ref (tag, v)) =
         let
