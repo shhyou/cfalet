@@ -189,19 +189,17 @@ fun test expr =
 
     val strippedRes =
       let
-        fun lookup x = [EnvStr.lookup x varEnv] handle EnvStr.NotFound _ => []
-
-        fun vars (NCL.Value _) = []
-          | vars (NCL.LetVal (x, _, e)) = lookup x@vars e
-          | vars (NCL.Let (x, NCL.Lam (y, e1), e2)) =
-              List.concat [lookup x, lookup y, vars e1, vars e2]
-          | vars (NCL.Let (x, _, e2)) = lookup x@vars e2
-          | vars (NCL.If (_, e1, e2)) = vars e1@vars e2
-
-        val excludeAddrs = vars expr
-        fun someEq n = List.exists (fn m => m = n) excludeAddrs
+        val pointedAddr =
+          List.mapPartial (fn (Ref addr) => SOME addr
+                            | _ => NONE)
+                          (List.concat (List.map (PowVal.listItems o #2) res))
       in
-        List.filter (not o someEq o #1) res
+        List.filter (fn (addr, v) => List.exists (fn m => addr = m) pointedAddr
+                              orelse List.exists (fn Halt => true
+                                                   | Frame _ => true
+                                                   | _ => false)
+                                                 (PowVal.listItems v))
+                    res
       end
 
     fun mark x =
