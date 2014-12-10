@@ -192,7 +192,7 @@ fun test expr =
         fun lookup x = [EnvStr.lookup x varEnv] handle EnvStr.NotFound _ => []
 
         fun vars (NCL.Value _) = []
-          | vars (NCL.LetVal (x, _, _)) = lookup x
+          | vars (NCL.LetVal (x, _, e)) = lookup x@vars e
           | vars (NCL.Let (x, NCL.Lam (y, e1), e2)) =
               List.concat [lookup x, lookup y, vars e1, vars e2]
           | vars (NCL.Let (x, _, e2)) = lookup x@vars e2
