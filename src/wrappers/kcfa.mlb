@@ -24,6 +24,6 @@ in
   structure AST
   structure NCL
   structure Parser0
-  structure CFA0
+  structure CFA1
   structure Main
 end

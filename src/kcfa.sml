@@ -1,5 +1,10 @@
-structure CFA0 =
+structure CFA1 =
 struct
+
+fun pairCollate (cmp1, cmp2) = fn ((a1, b1), (a2, b2)) =>
+  case cmp1 (a1, a2) of
+      EQUAL => cmp2 (b1, b2)
+    | unequ => unequ
 
 type addr = int
 
@@ -11,13 +16,13 @@ datatype storable =
   | Ref of addr
   | Cl of string * env * string * NCL.t
     (* Kont *)
-  | Frame of string * env * NCL.t * addr
+  | Frame of string * env * NCL.t * addr * string
   | Halt
 
 fun toString Const = "<Const>"
   | toString (Ref l) = "<Ref " ^ Int.toString l ^ ">"
   | toString (Cl (tag, env, x, e)) = "<Cl " ^ tag ^ ">"
-  | toString (Frame (x, env, e, l)) = "<Frame " ^ x ^ "/" ^ Int.toString l ^ ">"
+  | toString (Frame (x, env, e, l, _)) = "<Frame " ^ x ^ "/" ^ Int.toString l ^ ">"
   | toString Halt = "<Halt>"
 
 structure PowVal = struct
@@ -33,10 +38,8 @@ structure PowVal = struct
     fun compare (Const, Const) = EQUAL
       | compare (Ref l1, Ref l2) = Int.compare (l1, l2)
       | compare (Cl (f, _, _, _), Cl (g, _, _, _)) = String.compare (f, g)
-      | compare (Frame (x1, _, _, l1), Frame (x2, _, _, l2)) =
-          (case String.compare (x1, x2) of
-              EQUAL => Int.compare (l1, l2)
-            | unequ => unequ)
+      | compare (Frame (x1, _, _, l1, _), Frame (x2, _, _, l2, _)) =
+          pairCollate (String.compare, Int.compare) ((x1,l1), (x2,l2))
       | compare (Halt, Halt) = EQUAL
       | compare (v1, v2) = Int.compare (getPriority v1, getPriority v2)
   end)
@@ -56,22 +59,29 @@ end
 type store = PowVal.set ValMap.map
 
 local
+  structure EnvMap = BinaryMapFn(struct
+    type ord_key = string * string
+    val compare = pairCollate (String.compare, String.compare)
+  end)
+
   val cnt = ref 0
   fun alloc_map map =
-    ( fn () => !map
-    , fn () => (map := EnvStr.extend ("", 0) EnvStr.empty; cnt := 1)
-    , fn x =>
-        EnvStr.lookup x (!map) handle _ =>
-          let
-            val addr = !cnt
-          in
-            cnt := !cnt + 1;
-            map := EnvStr.extend (x, addr) (!map);
-            addr
-          end )
+    ( fn () => EnvMap.listItemsi (!map)
+    , fn () => (map := EnvMap.insert (EnvMap.empty, ("", ""), 0); cnt := 1)
+    , fn key =>
+        case EnvMap.find (!map, key) of
+            SOME addr => addr
+          | NONE =>
+            let
+              val addr = !cnt
+            in
+              cnt := !cnt + 1;
+              map := EnvMap.insert (!map, key, addr);
+              addr
+            end )
 in
-  val (getAllocMap, reset, alloc) = alloc_map (ref EnvStr.empty)
-  val (getAllocKMap, resetK, allocK) = alloc_map (ref EnvStr.empty)
+  val (getAllocMap, reset, alloc) = alloc_map (ref EnvMap.empty)
+  val (getAllocKMap, resetK, allocK) = alloc_map (ref EnvMap.empty)
 end
 
 exception Undefined
@@ -93,30 +103,30 @@ fun gamma (cxt, store, NCL.Var x) = valOf (ValMap.find (store, EnvStr.lookup x c
   | gamma _ = PowVal.singleton Const
 
 (*  return : <sigma, vs, l> -> { <Gamma', sigma', e, l'> | <frame Gamma, x, e, l'> in sigma(l) } *)
-fun return (cxt, store, values, y, e', kont) =
+fun return (cxt, store, values, y, e', kont, y') =
   let
-    val l = alloc y
+    val l = alloc (y, y')
     val (dirty, store') = storeInsert (store, l, values)
   in
-    eval (EnvStr.extend (y, l) cxt, store', e', kont)
+    eval (EnvStr.extend (y, l) cxt, store', e', kont, y')
   end
 
-and comp (cxt, store, expr, y, e', l) =
+and comp (cxt, store, expr, y, e', l, y') =
   let
-    fun doIt (NCL.Lam (x, e)) = return (cxt, store, PowVal.singleton (Cl (y, cxt, x, e)), y, e', l)
+    fun doIt (NCL.Lam (x, e)) = return (cxt, store, PowVal.singleton (Cl (y, cxt, x, e)), y, e', l, y')
       | doIt (NCL.Ap (v1, v2)) =
         let
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
-          val l' = allocK y
-          val (dirty, store') = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l)))
+          val l' = allocK (y, y')
+          val (dirty, store') = storeInsert (store, l', PowVal.singleton (Frame (y, cxt, e', l, y')))
 
           fun collectEval (cl as Cl (_, cxt', x', e''), store'') =
               let
-                val l'' = alloc x'
+                val l'' = alloc (x', y)
                 val (dirty', store''') = storeInsert (store'', l'', v2')
               in
                 if dirty orelse dirty'
-                then eval (EnvStr.extend (x', l'') cxt', store''', e'', l')
+                then eval (EnvStr.extend (x', l'') cxt', store''', e'', l', y)
                 else store''
               end
             | collectEval (_, store'') = store''
@@ -125,10 +135,10 @@ and comp (cxt, store, expr, y, e', l) =
         end
       | doIt (NCL.Ref (tag, v)) =
         let
-          val l'' = alloc tag
+          val l'' = alloc (tag, y')
           val (_, store'') = storeInsert (store, l'', gamma (cxt, store, v))
         in
-          return (cxt, store'', PowVal.singleton (Ref l''), y, e', l)
+          return (cxt, store'', PowVal.singleton (Ref l''), y, e', l, y')
         end
       | doIt (NCL.Deref v) =
         let
@@ -136,7 +146,7 @@ and comp (cxt, store, expr, y, e', l) =
                                    | _ => PowVal.empty)
           val getVal = List.foldl PowVal.union PowVal.empty o getVals
         in
-          return (cxt, store, getVal (PowVal.listItems (gamma (cxt, store, v))), y, e', l)
+          return (cxt, store, getVal (PowVal.listItems (gamma (cxt, store, v))), y, e', l, y')
         end
       | doIt (NCL.Set (v1, v2)) =
         let
@@ -145,21 +155,21 @@ and comp (cxt, store, expr, y, e', l) =
                                        | (_, st) => st)
                                      store v1'
         in
-          return (cxt, store'', PowVal.singleton Const, y, e', l)
+          return (cxt, store'', PowVal.singleton Const, y, e', l, y')
         end
   in
     doIt expr
   end
 
-and eval (cxt, store, NCL.Value v, l) =
+and eval (cxt, store, NCL.Value v, l, y') =
     let
       val values = gamma (cxt, store, v)
-      fun collectEval (Frame (x, cxt, e, kont'), store') =
+      fun collectEval (Frame (x, cxt, e, kont', y''), store') =
           let
-            val l = alloc x
-            val (_, store'') = storeInsert (store', l, values)
+            val l' = alloc (x, y'')
+            val (_, store'') = storeInsert (store', l', values)
           in
-            eval (EnvStr.extend (x, l) cxt, store'', e, kont')
+            eval (EnvStr.extend (x, l') cxt, store'', e, kont', y'')
           end
         | collectEval (Halt, store') = store'
         | collectEval _ = raise NotContinuation
@@ -168,24 +178,22 @@ and eval (cxt, store, NCL.Value v, l) =
     in
       PowVal.foldl collectEval store konts
     end
-  | eval (cxt, store, NCL.LetVal (x, v, e), l) = return (cxt, store, gamma (cxt, store, v), x, e, l)
-  | eval (cxt, store, NCL.Let (x, f, e), l) = comp (cxt, store, f, x, e, l)
-  | eval (cxt, store, NCL.If (_, e1, e2), l) =
+  | eval (cxt, store, NCL.LetVal (x, v, e), l, y') = return (cxt, store, gamma (cxt, store, v), x, e, l, y')
+  | eval (cxt, store, NCL.Let (x, f, e), l, y') = comp (cxt, store, f, x, e, l, y')
+  | eval (cxt, store, NCL.If (_, e1, e2), l, y') =
     let
-      val store' = eval (cxt, store, e1, l)
+      val store' = eval (cxt, store, e1, l, y')
     in
-      eval (cxt, store', e2, l)
+      eval (cxt, store', e2, l, y')
     end
 
-val kont0 = allocK ""
+val kont0 = allocK ("", "")
 val store0 = ValMap.insert (ValMap.empty, kont0, PowVal.singleton Halt)
 
 fun test expr =
   let
-    val res = ValMap.listItemsi (eval (EnvStr.empty, store0, expr, kont0))
-
-    val varEnv = getAllocMap ()
-    val kontEnv = getAllocKMap ()
+    val store = eval (EnvStr.empty, store0, expr, kont0, "")
+    val res = ValMap.listItemsi store
 
     val strippedRes =
       let
@@ -202,9 +210,33 @@ fun test expr =
                     res
       end
 
+    fun markedVars (v as NCL.Value _) = []
+      | markedVars (NCL.LetVal (x, v, e)) = x::markedVars e
+      | markedVars (NCL.Let (x, NCL.Lam (y, e1), e2)) =
+          x::y::(markedVars e1@markedVars e2)
+      | markedVars (NCL.Let (x, f, e2)) = x::markedVars e2
+      | markedVars (NCL.If (v, e1, e2)) = markedVars e1@markedVars e2
+
+    val vars = ListMergeSort.uniqueSort String.compare (markedVars expr)
+
+    val varEnv = getAllocMap () (* already sorted in increasing key order *)
+
+    val varVals = EnvStr.fromList (List.map (fn v =>
+      (v, List.mapPartial (fn ((v', l), l') =>
+            if v = v'
+            then SOME (l, valOf (ValMap.find (store, l')))
+            else NONE) varEnv)) vars)
+
+
     fun mark x =
-      String.concat ["{{", Int.toString (EnvStr.lookup x varEnv), "|", x, "}}"]
-        handle EnvStr.NotFound _ => x
+      let
+        fun index (v, []) = raise Undefined
+          | index (v, (v', _)::vs) =
+              if v = v' then 0 else 1 + index (v, vs)
+      in
+        String.concat ["{{", Int.toString (index (x, varVals)), "|", x, "}}"]
+          handle EnvStr.NotFound _ => x
+      end
 
     fun markCode (v as NCL.Value _) = v
       | markCode (NCL.LetVal (x, v, e)) = NCL.LetVal (mark x, v, markCode e)
@@ -216,8 +248,12 @@ fun test expr =
   in
     print (NCL.toString (markCode expr) ^ "\n=====\n");
     print (ValMap.toString strippedRes ^ "\n=====\n");
-    List.app (fn (k, v) =>
-      print (PowVal.toString v ^ "\n---\n")) res
+    List.app (fn (k, vs) =>
+      (List.app (fn (y', v) =>
+        (print (y' ^ ":\n");
+         print (PowVal.toString v ^ "\n");
+         print "\n")) vs;
+       print "---\n")) varVals
   end
 
 (* To enable stack trace:
