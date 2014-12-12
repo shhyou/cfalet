@@ -12,14 +12,18 @@ type env = addr EnvStr.t
 
 datatype storable =
     (* Value *)
-    Const
+    Unit
+  | Int
+  | Bool
   | Ref of addr
   | Cl of string * env * string * NCL.t
     (* Kont *)
   | Frame of string * env * NCL.t * addr * string
   | Halt
 
-fun toString Const = "<Const>"
+fun toString Unit = "<Unit>"
+  | toString Int = "<Int>"
+  | toString Bool = "<Bool>"
   | toString (Ref l) = "<Ref " ^ Int.toString l ^ ">"
   | toString (Cl (tag, env, x, e)) = "<Cl " ^ tag ^ ">"
   | toString (Frame (x, env, e, l, _)) = "<Frame " ^ x ^ "/" ^ Int.toString l ^ ">"
@@ -29,13 +33,17 @@ structure PowVal = struct
   structure Set = BinarySetFn(struct
     type ord_key = storable
 
-    fun getPriority Const = 0
-      | getPriority (Ref _) = 1
-      | getPriority (Cl _) = 2
-      | getPriority (Frame _) = 3
-      | getPriority Halt = 4
+    fun getPriority Unit = 0
+      | getPriority Int = 1
+      | getPriority Bool = 2
+      | getPriority (Ref _) = 3
+      | getPriority (Cl _) = 4
+      | getPriority (Frame _) = 5
+      | getPriority Halt = 6
 
-    fun compare (Const, Const) = EQUAL
+    fun compare (Unit, Unit) = EQUAL
+      | compare (Int, Int) = EQUAL
+      | compare (Bool, Bool) = EQUAL
       | compare (Ref l1, Ref l2) = Int.compare (l1, l2)
       | compare (Cl (f, _, _, _), Cl (g, _, _, _)) = String.compare (f, g)
       | compare (Frame (x1, _, _, l1, _), Frame (x2, _, _, l2, _)) =
@@ -99,8 +107,10 @@ fun storeInsert (item as (store, addr, values)) =
           | unequ => (true, ValMap.insert (store, addr, values''))
       end
 
-fun gamma (cxt, store, NCL.Var x) = valOf (ValMap.find (store, EnvStr.lookup x cxt))
-  | gamma _ = PowVal.singleton Const
+fun gamma (cxt, store, NCL.Unit) = PowVal.singleton Unit
+  | gamma (cxt, store, NCL.Int _) = PowVal.singleton Int
+  | gamma (cxt, store, NCL.Bool _) = PowVal.singleton Bool
+  | gamma (cxt, store, NCL.Var x) = valOf (ValMap.find (store, EnvStr.lookup x cxt))
 
 (*  return : <sigma, vs, l> -> { <Gamma', sigma', e, l'> | <frame Gamma, x, e, l'> in sigma(l) } *)
 fun return (cxt, store, values, y, e', kont, y') =
@@ -155,7 +165,7 @@ and comp (cxt, store, expr, y, e', l, y') =
                                        | (_, st) => st)
                                      store v1'
         in
-          return (cxt, store'', PowVal.singleton Const, y, e', l, y')
+          return (cxt, store'', PowVal.singleton Unit, y, e', l, y')
         end
   in
     doIt expr
