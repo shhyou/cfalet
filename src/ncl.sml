@@ -1,5 +1,6 @@
 structure NCL =
 struct
+
   datatype v =
       Unit
     | Int of int
@@ -17,7 +18,6 @@ struct
     | Deref of v
     | Set of v * v
 
-
   val fresh =
     let
       val cnt = ref 0
@@ -31,42 +31,51 @@ struct
         end
     end
 
+  datatype Kont =
+      KFun of (v -> t)
+    | KVal
+    | KLet of string * t
+
+  val id = KVal
+
+  fun ap (KFun k, v) = k v
+    | ap (KVal, v) = Value v
+    | ap (KLet (x, t), v) = LetVal (x, v, t)
+
   (*  normalizeK : AST.t -> (NCL.v -> NCL.t) -> NCL.t *)
-  fun normalizeK (AST.Value AST.Unit) k = k Unit
-    | normalizeK (AST.Value (AST.Int n)) k = k (Int n)
-    | normalizeK (AST.Value (AST.Bool b)) k = k (Bool b)
-    | normalizeK (AST.Value (AST.Var x)) k = k (Var x)
-    | normalizeK (AST.Value (AST.Lam (x, e))) k = mkLet (Lam (x, normalizeK e Value), k)
-    | normalizeK (AST.Ap (e1, e2)) k =
-        normalizeK e1 (fn v1 =>
-          normalizeK e2 (fn v2 =>
-            mkLet (Ap (v1, v2), k)))
-    | normalizeK (AST.Let (x, e1, e2)) k =
-        normalizeK e1 (fn v1 =>
-          LetVal (x, v1,
-          normalizeK e2 k))
-    | normalizeK (AST.If (e1, e2, e3)) k =
-        normalizeK e1 (fn v1 =>
+  fun normalizeK (AST.Value AST.Unit, k) = ap (k, Unit)
+    | normalizeK (AST.Value (AST.Int n), k) = ap (k, Int n)
+    | normalizeK (AST.Value (AST.Bool b), k) = ap (k, Bool b)
+    | normalizeK (AST.Value (AST.Var x), k) = ap (k, Var x)
+    | normalizeK (AST.Value (AST.Lam (x, e)), k) = mkLet (Lam (x, normalizeK (e, id)), k)
+    | normalizeK (AST.Ap (e1, e2), k) =
+        normalizeK (e1, KFun (fn v1 =>
+          normalizeK (e2, KFun (fn v2 =>
+            mkLet (Ap (v1, v2), k)))))
+    | normalizeK (AST.Let (x, e1, e2), k) = normalizeK (e1, KLet (x, normalizeK (e2, k)))
+    | normalizeK (AST.If (e1, e2, e3), k) =
+        normalizeK (e1, KFun (fn v1 =>
           let
             val k_var = fresh ()
             val k_arg = fresh ()
           in
-            Let (k_var, Lam (k_arg, k (Var k_arg)),
+            Let (k_var, Lam (k_arg, ap (k, Var k_arg)),
             If (v1,
-                normalizeK e2 (fn v => mkLet (Ap (Var k_var, v), Value)),
-                normalizeK e3 (fn v => mkLet (Ap (Var k_var, v), Value))))
-          end)
-    | normalizeK (AST.Ref e) k = normalizeK e (fn v => mkLet (Ref (fresh (), v), k))
-    | normalizeK (AST.Deref e) k = normalizeK e (fn v => mkLet (Deref v, k))
-    | normalizeK (AST.Set (e1, e2)) k =
-        normalizeK e1 (fn v1 =>
-          normalizeK e2 (fn v2 =>
-            mkLet (Set (v1, v2), k)))
-  and mkLet (comp, k) =
+                normalizeK (e2, KFun (fn v => mkLet (Ap (Var k_var, v), id))),
+                normalizeK (e3, KFun (fn v => mkLet (Ap (Var k_var, v), id)))))
+          end))
+    | normalizeK (AST.Ref e, k) = normalizeK (e, KFun (fn v => mkLet (Ref (fresh (), v), k)))
+    | normalizeK (AST.Deref e, k) = normalizeK (e, KFun (fn v => mkLet (Deref v, k)))
+    | normalizeK (AST.Set (e1, e2), k) =
+        normalizeK (e1, KFun (fn v1 =>
+          normalizeK (e2, KFun (fn v2 =>
+            mkLet (Set (v1, v2), k)))))
+  and mkLet (comp, KLet (x, t)) = Let (x, comp, t)
+    | mkLet (comp, k) =
     let
       val tmp = fresh ()
     in
-      Let (tmp, comp, k (Var tmp))
+      Let (tmp, comp, ap (k, Var tmp))
     end
 
   val tab = "    "
@@ -112,8 +121,8 @@ struct
 
   val toString = mkStringAux 0 ""
 
-  val p0 = normalizeK AST.p0 Value
-  val p1 = normalizeK AST.p1 Value
-  val p2 = normalizeK AST.p2 Value
+  val p0 = normalizeK (AST.p0, id)
+  val p1 = normalizeK (AST.p1, id)
+  val p2 = normalizeK (AST.p2, id)
 
 end
