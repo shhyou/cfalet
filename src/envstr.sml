@@ -8,7 +8,7 @@ sig
   val lookup : string -> 'a t -> 'a
   val member : string -> 'a t -> bool
 
-  val compareWith : ('a * 'a -> order) -> 'a t * 'a t -> order
+  val collate : ('a * 'a -> order) -> 'a t * 'a t -> order
   val fromList : (string * 'a) list -> 'a t
   val toList : 'a t -> (string * 'a) list
   val toString : ('a -> string) -> 'a t -> string
@@ -32,7 +32,7 @@ struct
   fun member key [] = false
     | member key ((k,v)::xs) = (key = k) orelse member key xs
 
-  fun compareWith cmp =
+  fun collate cmp =
     let
       fun listComp ([], []) = EQUAL
         | listComp ([], _::_) = LESS
