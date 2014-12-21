@@ -47,8 +47,9 @@ structure PowVal = struct
       | compare (Ref l1, Ref l2) = Int.compare (l1, l2)
       | compare (Cl (f, env1, _, _), Cl (g, env2, _, _)) =
           pairCollate (String.compare, EnvStr.collate Int.compare) ((f, env1), (f, env2)) 
-      | compare (Frame (x1, _, _, l1, _), Frame (x2, _, _, l2, _)) =
-          pairCollate (String.compare, Int.compare) ((x1,l1), (x2,l2))
+      | compare (Frame (x1, env1, _, l1, _), Frame (x2, env2, _, l2, _)) =
+          pairCollate (pairCollate (String.compare, Int.compare), EnvStr.collate Int.compare)
+            (((x1,l1), env1), ((x2,l2), env2))
       | compare (Halt, Halt) = EQUAL
       | compare (v1, v2) = Int.compare (getPriority v1, getPriority v2)
   end)
