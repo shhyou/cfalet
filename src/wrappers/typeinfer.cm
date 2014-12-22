@@ -1,6 +1,7 @@
 Group is
   $/basis.cm
   $/ml-yacc-lib.cm
+  $/smlnj-lib.cm
   ../envstr.sml
 
   ../ast.sml

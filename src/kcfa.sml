@@ -233,11 +233,11 @@ fun test expr =
 
     val varEnv = getAllocMap () (* already sorted in increasing key order *)
 
-    val varVals = EnvStr.fromList (List.map (fn v =>
+    val varVals = List.map (fn v =>
       (v, List.mapPartial (fn ((v', l), l') =>
             if v = v'
             then SOME (l, valOf (ValMap.find (store, l')))
-            else NONE) varEnv)) vars)
+            else NONE) varEnv)) vars
 
 
     fun mark x =
@@ -247,7 +247,6 @@ fun test expr =
               if v = v' then 0 else 1 + index (v, vs)
       in
         String.concat ["{{", Int.toString (index (x, varVals)), "|", x, "}}"]
-          handle EnvStr.NotFound _ => x
       end
 
     fun markCode (v as NCL.Value _) = v

@@ -16,41 +16,33 @@ end
 
 structure EnvStr : ENV_STR =
 struct
-  type 'a t = (string * 'a) list
+  structure StringMap = BinaryMapFn(struct
+    type ord_key = string
+    val compare = String.compare
+  end)
+
+  type 'a t = 'a StringMap.map
+
   exception NotFound of string
 
-  val empty = []
+  val empty = StringMap.empty
 
-  fun extend pr = fn xs => pr :: xs
+  fun extend (key, value) = fn set => StringMap.insert (set, key, value)
 
-  fun lookup key [] = raise (NotFound key)
-    | lookup key ((k, v)::xs) =
-        if key = k
-        then v
-        else lookup key xs
+  fun lookup key set = case StringMap.find (set, key) of
+      NONE => raise (NotFound key)
+    | SOME v => v
 
-  fun member key [] = false
-    | member key ((k,v)::xs) = (key = k) orelse member key xs
+  fun member key set = StringMap.inDomain (set, key)
 
-  fun collate cmp =
-    let
-      fun listComp ([], []) = EQUAL
-        | listComp ([], _::_) = LESS
-        | listComp (_::_, []) = GREATER
-        | listComp ((k1,v1)::xs1, (k2,v2)::xs2) =
-            case (String.compare (k1,k2), cmp (v1,v2)) of
-                (EQUAL, EQUAL) => listComp (xs1, xs2)
-              | (EQUAL, unequ) => unequ
-              | (unequ, _)     => unequ
-    in
-      listComp
-    end
+  val collate = StringMap.collate
 
-  val fromList = fn xs => xs
-  val toList = fn xs => xs
+  fun fromList xs = List.foldl (fn (pr, set) => extend pr set) empty xs
+
+  val toList = StringMap.listItemsi
 
   fun toString show xs =
       "[" ^ String.concatWith ", "
-              (List.map (fn (x, v) => "(" ^ x ^ "," ^ show v ^ ")") xs)
+              (List.map (fn (x, v) => "(" ^ x ^ "," ^ show v ^ ")") (toList xs))
     ^ "]"
 end
