@@ -3,7 +3,7 @@ struct
 
 (*  main : string * string list -> OS.Process.status *)
 fun main (prog_name, args) =
-  ( CFA1.test (NCL.normalizeK (Parser0.parse (TextIO.openIn "test.sml"), NCL.id));
+  ( CFAK.test (NCL.normalizeK (Parser0.parse (TextIO.openIn "test.sml"), NCL.id));
     OS.Process.success)
 
 fun mainWrapped () =
