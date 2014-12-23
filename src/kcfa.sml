@@ -71,6 +71,12 @@ end
 
 type store = PowVal.set ValMap.map
 
+type 'a state = { expr: 'a
+                , environment : env
+                , store : store
+                , cont : addr
+                , contour : string list }
+
 local
   structure EnvMap = BinaryMapFn(struct
     type ord_key = string * string list
@@ -125,17 +131,33 @@ fun gamma (cxt, store, NCL.Unit) = PowVal.singleton Unit
   | gamma (cxt, store, NCL.Var x) = valOf (ValMap.find (store, EnvStr.lookup x cxt))
 
 (*  return : <sigma, vs, l> -> { <Gamma', sigma', e, l'> | <frame Gamma, x, e, l'> in sigma(l) } *)
-fun return (cxt, store, values, y, e', kont, contr) =
+fun return ({ expr = e'
+            , environment = cxt
+            , store = store
+            , cont = l
+            , contour = contr }, values, y) =
   let
-    val l = alloc (y, contr)
-    val (dirty, store') = storeInsert (store, l, values)
+    val l' = alloc (y, contr)
+    val (dirty, store') = storeInsert (store, l', values)
   in
-    eval (EnvStr.extend (y, l) cxt, store', e', kont, contr)
+    eval { expr = e'
+         , environment = EnvStr.extend (y, l) cxt
+         , store = store'
+         , cont = l
+         , contour = contr }
   end
 
-and comp (cxt, store, expr, y, e', l, contr) =
+and comp ({ expr = expr
+          , environment = cxt
+          , store = store
+          , cont = l
+          , contour = contr }, y, e') =
   let
-    fun doIt (NCL.Lam (x, e)) = return (cxt, store, PowVal.singleton (Cl (y, cxt, x, e)), y, e', l, contr)
+    fun doIt (NCL.Lam (x, e)) = return ({ expr = e'
+                                        , environment = cxt
+                                        , store = store
+                                        , cont = l
+                                        , contour = contr }, PowVal.singleton (Cl (y, cxt, x, e)), y)
       | doIt (NCL.Ap (v1, v2)) =
         let
           val (v1', v2') = (gamma (cxt, store, v1), gamma (cxt, store, v2))
@@ -149,7 +171,11 @@ and comp (cxt, store, expr, y, e', l, contr) =
                 val (dirty', store''') = storeInsert (store'', l'', v2')
               in
                 if dirty orelse dirty'
-                then eval (EnvStr.extend (x', l'') cxt', store''', e'', l', contr')
+                then eval { expr = e''
+                          , environment = EnvStr.extend (x', l'') cxt'
+                          , store = store'''
+                          , cont = l'
+                          , contour = contr' }
                 else store''
               end
             | collectEval (_, store'') = store''
@@ -161,7 +187,11 @@ and comp (cxt, store, expr, y, e', l, contr) =
           val l'' = alloc (tag, contr)
           val (_, store'') = storeInsert (store, l'', gamma (cxt, store, v))
         in
-          return (cxt, store'', PowVal.singleton (Ref l''), y, e', l, contr)
+          return ({ expr = e'
+                  , environment = cxt
+                  , store = store''
+                  , cont = l
+                  , contour = contr }, PowVal.singleton (Ref l''), y)
         end
       | doIt (NCL.Deref v) =
         let
@@ -169,7 +199,11 @@ and comp (cxt, store, expr, y, e', l, contr) =
                                    | _ => PowVal.empty)
           val getVal = List.foldl PowVal.union PowVal.empty o getVals
         in
-          return (cxt, store, getVal (PowVal.listItems (gamma (cxt, store, v))), y, e', l, contr)
+          return ({ expr = e'
+                  , environment = cxt
+                  , store = store
+                  , cont = l
+                  , contour = contr }, getVal (PowVal.listItems (gamma (cxt, store, v))), y)
         end
       | doIt (NCL.Set (v1, v2)) =
         let
@@ -178,13 +212,21 @@ and comp (cxt, store, expr, y, e', l, contr) =
                                        | (_, st) => st)
                                      store v1'
         in
-          return (cxt, store'', PowVal.singleton Unit, y, e', l, contr)
+          return ({ expr = e'
+                  , environment = cxt
+                  , store = store''
+                  , cont = l
+                  , contour = contr }, PowVal.singleton Unit, y)
         end
   in
     doIt expr
   end
 
-and eval (cxt, store, NCL.Value v, l, contr) =
+and eval { expr = NCL.Value v
+         , environment = cxt
+         , store = store
+         , cont = l
+         , contour = contr } =
     let
       val values = gamma (cxt, store, v)
       fun collectEval (Frame (x, cxt, e, kont', contr'), store') =
@@ -192,7 +234,11 @@ and eval (cxt, store, NCL.Value v, l, contr) =
             val l' = alloc (x, contr')
             val (_, store'') = storeInsert (store', l', values)
           in
-            eval (EnvStr.extend (x, l') cxt, store'', e, kont', contr')
+            eval { expr = e
+                 , environment = EnvStr.extend (x, l') cxt
+                 , store = store''
+                 , cont = kont'
+                 , contour = contr' }
           end
         | collectEval (Halt, store') = store'
         | collectEval _ = raise NotContinuation
@@ -201,16 +247,48 @@ and eval (cxt, store, NCL.Value v, l, contr) =
     in
       PowVal.foldl collectEval store konts
     end
-  | eval (cxt, store, NCL.LetVal (x, v, e), l, contr) = return (cxt, store, gamma (cxt, store, v), x, e, l, contr)
-  | eval (cxt, store, NCL.Let (x, f, e), l, contr) = comp (cxt, store, f, x, e, l, contr)
-  | eval (cxt, store, NCL.If (_, e1, e2), l, contr) = eval (cxt, eval (cxt, store, e1, l, contr), e2, l, contr)
+  | eval { expr = NCL.LetVal (x, v, e)
+         , environment = cxt
+         , store = store
+         , cont = l
+         , contour = contr } = return ({ expr = e
+                                       , environment = cxt
+                                       , store = store
+                                       , cont = l
+                                       , contour = contr }, gamma (cxt, store, v), x)
+  | eval { expr = NCL.Let (x, f, e)
+         , environment = cxt
+         , store = store
+         , cont = l
+         , contour = contr } = comp ({ expr = f
+                                     , environment = cxt
+                                     , store = store
+                                     , cont = l
+                                     , contour = contr }, x, e)
+  | eval { expr = NCL.If (_, e1, e2)
+         , environment = cxt
+         , store = store
+         , cont = l
+         , contour = contr } = eval { expr = e1
+                                    , environment = cxt
+                                    , store = eval { expr = e2
+                                                   , environment = cxt
+                                                   , store = store
+                                                   , cont = l
+                                                   , contour = contr }
+                                    , cont = l
+                                    , contour = contr }
 
 val kont0 = allocK ("", [])
 val store0 = ValMap.insert (ValMap.empty, kont0, PowVal.singleton Halt)
 
 fun test expr =
   let
-    val store = eval (EnvStr.empty, store0, expr, kont0, [])
+    val store = eval { expr = expr
+                     , environment = EnvStr.empty
+                     , store = store0
+                     , cont = kont0
+                     , contour = [] }
     val res = ValMap.listItemsi store
 
     val strippedRes =
