@@ -141,7 +141,7 @@ fun return ({ expr = e'
     val (dirty, store') = storeInsert (store, l', values)
   in
     eval { expr = e'
-         , environment = EnvStr.extend (y, l) cxt
+         , environment = EnvStr.extend (y, l') cxt
          , store = store'
          , cont = l
          , contour = contr }
