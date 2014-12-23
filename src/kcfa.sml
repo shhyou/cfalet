@@ -92,7 +92,7 @@ local
   end)
 
   val cnt = ref 0
-  fun alloc_map map : (unit -> ((string * string list) * int) list) * (string * string list -> int) =
+  fun alloc_map map =
     ( fn () => EnvMap.listItemsi (!map)
     , fn key =>
         case EnvMap.find (!map, key) of
