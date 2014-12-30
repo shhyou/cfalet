@@ -8,6 +8,7 @@ sig
   val lookup : string -> 'a t -> 'a
   val member : string -> 'a t -> bool
 
+  val collate : ('a * 'a -> order) -> 'a t * 'a t -> order
   val fromList : (string * 'a) list -> 'a t
   val toList : 'a t -> (string * 'a) list
   val toString : ('a -> string) -> 'a t -> string
@@ -15,27 +16,33 @@ end
 
 structure EnvStr : ENV_STR =
 struct
-  type 'a t = (string * 'a) list
+  structure StringMap = BinaryMapFn(struct
+    type ord_key = string
+    val compare = String.compare
+  end)
+
+  type 'a t = 'a StringMap.map
+
   exception NotFound of string
 
-  val empty = []
+  val empty = StringMap.empty
 
-  fun extend pr = fn xs => pr :: xs
+  fun extend (key, value) = fn set => StringMap.insert (set, key, value)
 
-  fun lookup key [] = raise (NotFound key)
-    | lookup key ((k, v)::xs) =
-        if key = k
-        then v
-        else lookup key xs
+  fun lookup key set = case StringMap.find (set, key) of
+      NONE => raise (NotFound key)
+    | SOME v => v
 
-  fun member key [] = false
-    | member key ((k,v)::xs) = (key = k) orelse member key xs
+  fun member key set = StringMap.inDomain (set, key)
 
-  val fromList = fn xs => xs
-  val toList = fn xs => xs
+  val collate = StringMap.collate
+
+  fun fromList xs = List.foldl (fn (pr, set) => extend pr set) empty xs
+
+  val toList = StringMap.listItemsi
 
   fun toString show xs =
       "[" ^ String.concatWith ", "
-              (List.map (fn (x, v) => "(" ^ x ^ "," ^ show v ^ ")") xs)
+              (List.map (fn (x, v) => "(" ^ x ^ "," ^ show v ^ ")") (toList xs))
     ^ "]"
 end

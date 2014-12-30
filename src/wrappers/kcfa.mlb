@@ -1,11 +1,9 @@
 local
   (* import libraries *)
   $(SML_LIB)/basis/basis.mlb    (* the standard library *)
-  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
   $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
   ../envstr.sml
-
-  ../type.mlb
 
   (* main files *)
   ../ast.sml
@@ -15,16 +13,17 @@ local
   ../parser/parser.grm.sml
   ../parser.sml
 
-  ../typeinfer.sml
-  typeinfer-main.sml
-  typeinfer-mlton.sml
+  ../ncl.sml
+  ../kcfa.sml
+  kcfa-main.sml
+  kcfa-mlton.sml
 in
   signature ENV_STR
   structure EnvStr
 
   structure AST
+  structure NCL
   structure Parser0
-  structure Type
-  structure Typeinfer
+  structure CFAK
   structure Main
 end

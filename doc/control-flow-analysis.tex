@@ -1,0 +1,111 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{bussproofs}
+
+\input{mathdef.tex}
+\input{haskell-lst.tex}
+
+\begin{document}
+\title{(0 --) Control Flow Analysis}
+\author{suhorng}
+\maketitle
+\section{0-CFA}
+\[\begin{aligned}
+\text{Addr} &\equiv (\text{left abstract})\\
+\text{Val} &\equiv \langle\mathbf{const}\rangle \;|\; \langle\mathbf{ref}\; \text{Addr}\rangle \;|\; \langle\mathbf{cl}\; \text{Var}, \text{Env}, \text{Var}, e\rangle\\
+\GG \in \text{Env} &\equiv \text{Var} \to \text{Addr}\\
+\Gs \in \text{Store} &\equiv \text{Addr} \to \pow(\text{Value}\cup\text{Kont}) \\
+\Gk \in \text{Kont} &\equiv \langle\mathbf{halt}\rangle \;|\; \langle\mathbf{frame}\; \text{Env}, \text{Var}, e, \text{Addr}\rangle
+\end{aligned}\]
+
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.49\textwidth}
+
+\subsection{computation}
+Let $\Gs'=\Gs\sqcup[l'\mapsto\set{\langle\mathbf{frame}\; \GG,y,e',l\rangle}]$ where $l'=\mathit{new}_k(y,\Gs)$.
+
+\begin{itemize}
+\item $\langle\GG,\Gs,(\Gl x.e),y,e',l\rangle \longmapsto \langle \Gs',\set{v}, l'\rangle$
+
+\begin{itemize}
+\item $v = \langle\mathbf{cl}\; y,\GG,x,e\rangle$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(v_1\;v_2),y,e',l\rangle \longmapsto \langle\GG'',\Gs'',e'',l'\rangle$
+
+\begin{itemize}
+\item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle\in\Gg(\GG,\Gs,v_1)$
+\item $l''=\mathit{new}(x',\Gs)$
+\item $\GG''=\GG'[x':=l'']$
+\item $\Gs''=\Gs'\sqcup[l''\mapsto\Gg(\GG,\Gs,v_2)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',l\rangle \longmapsto \langle\Gs'', \set{\langle\mathbf{ref}\; l''\rangle},l'\rangle$
+
+\begin{itemize}
+  \item $l''=\mathit{new}(\Gs)$
+  \item $\Gs''=\Gs'\sqcup[l''\mapsto\Gg(\GG,\Gs,v)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',l\rangle \longmapsto \langle\Gs', \bigcup\Gs(\mathit{ls}),l'\rangle$
+
+\begin{itemize}
+\item $\mathit{ls}=\condset{l}{\langle\mathbf{ref}\; l\rangle\in\Gg(\GG,\Gs,v)}$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(v_1\; \text{\texttt{:=}}\; v_2),y,e',l\rangle \longmapsto \langle\Gs'',\set{\langle\mathbf{const}\rangle},l'\rangle$
+
+\begin{itemize}
+\item $\mathit{ls}=\condset{l}{\langle\mathbf{ref}\; l\rangle\in\Gg(\GG,\Gs,v_1)}$
+\item $\displaystyle \Gs''=\Gs'\sqcup\bigsqcup_{l\in\mathit{ls}}[l\mapsto\Gg(\GG,\Gs,v_2)]$
+\end{itemize}
+\end{itemize}
+
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+
+\subsection{expressions}
+\begin{itemize}
+\item $\langle\GG,\Gs,v,l\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,v),l \rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=v\; \mathtt{in}\; e),l\rangle \longmapsto \langle\Gs',\Gg(\GG,\Gs,v),l'\rangle$
+
+\begin{itemize}
+\item $l'=\mathit{new}_k(x,\Gs)$
+\item $\Gs' = \Gs\sqcup[l'\mapsto\langle\mathbf{frame}\; \GG,x,e,l\rangle]$.
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),l\rangle \longmapsto \langle\GG,\Gs,f,x, e, l\rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{if}\; v\; \mathtt{then}\; e_1\; \mathtt{else}\; e_2),l\rangle \longmapsto \langle\GG,\Gs, e, l\rangle$
+
+\begin{itemize}
+  \item $e\in\set{e_1,e_2}$
+\end{itemize}
+\end{itemize}
+
+\subsection{values}
+
+\begin{itemize}
+\item $\langle\Gs,\mathit{vs},l\rangle\mapsto\langle\GG',\Gs',e,l'\rangle$
+\begin{itemize}
+\item $\langle\mathbf{frame}\; \GG,x,e,l'\rangle\in \Gs(l)$
+\item $l''=\mathit{new}(x,\Gs)$
+\item $\GG' = \GG[x:=l'']$
+\item $\Gs' = \Gs\sqcup[l''\mapsto \mathit{vs}]$
+\end{itemize}
+\end{itemize}
+
+The function $\Gg : \text{Env}\times \text{Store}\times v\to \pow(\text{Val})$ is defined by
+
+\begin{itemize}
+  \item $\Gg(\GG,\Gs,x) = \Gs(\GG(x))$
+  \item $\Gg(\GG,\Gs,\_) = \set{\langle\mathbf{const}\rangle}$
+\end{itemize}
+
+\end{minipage}
+\end{minipage}
+
+\end{document}

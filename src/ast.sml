@@ -16,6 +16,41 @@ struct
     | Deref of t
     | Set of t * t
 
+  (*  alphaConv : AST.t -> AST.t *)
+  fun alphaConv e =
+    let
+      val cnt = ref 0
+      fun rename s =
+        let
+          val name = s ^ Int.toString (!cnt)
+        in
+          cnt := !cnt + 1;
+          name
+        end
+      fun doIt (cxt, Value v) = Value (doItV (cxt, v))
+        | doIt (cxt, Ap (e1, e2)) = Ap (doIt (cxt, e1), doIt (cxt, e2))
+        | doIt (cxt, Let (x, e1, e2)) =
+            let
+              val x' = rename x
+            in
+              Let (x', doIt (cxt, e1), doIt (EnvStr.extend (x, x') cxt, e2))
+            end
+        | doIt (cxt, If (e1, e2, e3)) = If (doIt (cxt, e1), doIt (cxt, e2), doIt (cxt, e3))
+        | doIt (cxt, Ref e) = Ref (doIt (cxt, e))
+        | doIt (cxt, Deref e) = Deref (doIt (cxt, e))
+        | doIt (cxt, Set (e1, e2)) = Set (doIt (cxt, e1), doIt (cxt, e2))
+      and doItV (cxt, Var x) = Var (EnvStr.lookup x cxt)
+        | doItV (cxt, Lam (x, e)) =
+            let
+              val x' = rename x
+            in
+              Lam (x', doIt (EnvStr.extend (x, x') cxt, e))
+            end
+        | doItV (cxt, v) = v
+    in
+      doIt (EnvStr.empty, e)
+    end
+
   val tab = "    "
 
   fun addParen b s = if b then "(" ^ s ^ ")" else s
@@ -55,9 +90,9 @@ struct
 
   val toString = mkStringAux 0 ""
 
-  val p0 = Value (Lam ("x", Value (Lam ("f", Ap (Value (Var "f"), Value (Var "x"))))))
-  val p1 = Let ("id", Value (Lam ("x", Value (Var "x"))),
-           Ap (Ap (Value (Var "id"), Value (Var "id")), Value (Int 5)))
-  val p2 = Value (Lam ("x", Let ("y", Value (Var "x"), Value (Var "y"))))
+  val p0 = alphaConv (Value (Lam ("x", Value (Lam ("f", Ap (Value (Var "f"), Value (Var "x")))))))
+  val p1 = alphaConv (Let ("id", Value (Lam ("x", Value (Var "x"))),
+           Ap (Ap (Value (Var "id"), Value (Var "id")), Value (Int 5))))
+  val p2 = alphaConv (Value (Lam ("x", Let ("y", Value (Var "x"), Value (Var "y")))))
 
 end

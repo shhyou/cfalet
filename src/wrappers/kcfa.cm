@@ -10,5 +10,6 @@ Group is
   ../parser/parser.grm
   ../type/type.sig
   ../type/type.sml
-  ../typeinfer.sml
-  typeinfer-main.sml
+  ../ncl.sml
+  ../kcfa.sml
+  kcfa-main.sml

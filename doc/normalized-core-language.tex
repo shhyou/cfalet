@@ -1,0 +1,152 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{bussproofs}
+
+\input{mathdef.tex}
+\input{haskell-lst.tex}
+
+\begin{document}
+\title{Normalized Core Language}
+\author{suhorng}
+\maketitle
+\section{Introduction}
+\section{Syntax}
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+v  ::=  $\unit$
+    |     $n\in\N$
+    |     $b\in\mathbb{B}$
+    |     x
+\end{code}
+
+\end{minipage}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+f  ::=  $\Gl$x.e
+    |    v v
+    |    ref v
+    |    !v
+    |    v := v
+\end{code}
+
+\end{minipage}
+\begin{minipage}[t]{0.33\textwidth}
+
+\begin{code}
+e  ::=  v
+    |    let x = v in e
+    |    let x = f in e
+    |    if v then e$_1$ else e$_2$
+\end{code}
+
+\end{minipage}
+\end{minipage}
+\section{Transforming to NCL}
+
+\section{An Abstract Machine}
+\[\begin{aligned}
+\text{Addr} &\equiv (\text{left abstract})\\
+\text{Val} &\equiv \langle\mathbf{unit}\rangle \;|\; \langle\mathbf{int}\; \Z\rangle \;|\; \langle\mathbf{bool}\; \mathbb{B}\rangle \;|\; \langle\mathbf{ref}\; \text{Addr}\rangle \;|\; \langle\mathbf{cl}\; \text{Var}, \text{Env}, \text{Var}, e\rangle\\
+\GG \in \text{Env} &\equiv \text{Var} \to \text{Addr}\\
+\Gs \in \text{Store} &\equiv \text{Addr} \to \text{Value} \\
+\Gk \in \text{Kont} &\equiv \langle\mathbf{halt}\rangle \;|\; \langle\mathbf{frame}\; \text{Env}, \text{Var}, e, \text{Kont}\rangle
+\end{aligned}\]
+
+\begin{minipage}{\textwidth}
+\begin{minipage}[t]{0.50\textwidth}
+
+\subsection{computation}
+Let $\Gk' = \langle\mathbf{frame}\; \GG,y,e',\Gk\rangle$.
+
+\begin{itemize}
+\item $\langle\GG,\Gs,(\Gl x.e),y,e',\Gk\rangle \longmapsto \langle \Gs,v, \Gk'\rangle$
+
+\begin{itemize}
+\item $v = \langle\mathbf{cl}\; y,\GG,x,e\rangle$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(v_1\;v_2),y,e',\Gk\rangle \longmapsto \langle\GG'',\Gs',e'',\Gk'\rangle$
+
+\begin{itemize}
+\item $\langle\mathbf{cl}\; \eta,\GG',x',e''\rangle=\Gg(\GG,\Gs,v_1)$
+\item $l\not\in\dom(\Gs)$
+\item $\GG''=\GG'[x':= l]$
+\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v_2)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\mathtt{ref}\; v),y,e',\Gk\rangle \longmapsto \langle\Gs', \langle\mathbf{ref}\; l\rangle,\Gk'\rangle$
+
+\begin{itemize}
+  \item $l\not\in\dom(\Gs)$
+  \item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v)]$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\text{\texttt{!}}v),y,e',\Gk\rangle \longmapsto \langle\Gs, \Gs(l),\Gk'\rangle$
+
+\begin{itemize}
+\item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v)$ and $l\in\dom(\Gs)$
+\end{itemize}
+
+\item $\langle\GG,\Gs,(v_1\; \text{\texttt{:=}}\; v_2),y,e',\Gk\rangle \longmapsto \langle\Gs',\langle\mathbf{unit}\rangle,\Gk'\rangle$
+
+\begin{itemize}
+\item $\langle\mathbf{ref}\; l\rangle=\Gg(\GG,\Gs,v_1)$ and $l\in\dom(\Gs)$
+\item $\Gs'=\Gs[l:= \Gg(\GG,\Gs,v_2)]$
+\end{itemize}
+\end{itemize}
+
+\end{minipage}
+\begin{minipage}[t]{0.50\textwidth}
+
+\subsection{expressions}
+\begin{itemize}
+\item $\langle\GG,\Gs,v,\Gk\rangle \longmapsto \langle \Gs,\Gg(\GG,\Gs,v),\Gk \rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=v\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\Gs,\Gg(\GG,\Gs,v),\Gk'\rangle$
+
+\begin{itemize}
+\item $\Gk' = \langle\mathbf{frame}\; \GG,x,e,\Gk\rangle$.
+\end{itemize}
+
+\item $\langle\GG,\Gs,(\mathtt{let}\; x=f\; \mathtt{in}\; e),\Gk\rangle \longmapsto \langle\GG,\Gs,f,x, e, \Gk\rangle$
+
+\item $\langle\GG,\Gs,(\mathtt{if}\; v\; \mathtt{then}\; e_1\; \mathtt{else}\; e_2),\Gk\rangle \longmapsto \langle\GG,\Gs, e, \Gk\rangle$
+
+\begin{itemize}
+  \item $\displaystyle e = \left\{\begin{array}{rl}
+e_1, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{true}\rangle \\
+e_2, & \text{if } \Gg(\GG,\Gs,v) = \langle\mathbf{bool}\; \mathit{false}\rangle
+\end{array}\right.$
+
+\end{itemize}
+\end{itemize}
+
+\subsection{values}
+
+\begin{itemize}
+\item $\langle\Gs,v,\langle\mathbf{frame}\; \GG,x,e,\Gk\rangle\rangle \longmapsto \langle\GG',\Gs',e,\Gk\rangle$
+\begin{itemize}
+\item $l\not\in\dom(\Gs)$
+\item $\GG' = \GG[x:= l]$
+\item $\Gs' = \Gs[l:= v]$
+\end{itemize}
+\end{itemize}
+
+The function $\Gg : \text{Env}\times \text{Store}\times v\to \text{Val}$ is defined by
+
+\begin{itemize}
+  \item $\Gg(\GG,\Gs,\unit) = \langle\mathbf{unit}\rangle$
+  \item $\Gg(\GG,\Gs,n) = \langle\mathbf{int}\; n\rangle$
+  \item $\Gg(\GG,\Gs,b) = \langle\mathbf{bool}\; b\rangle$
+  \item $\Gg(\GG,\Gs,x) = \Gs(\GG(x))$
+\end{itemize}
+
+\end{minipage}
+\end{minipage}
+
+\end{document}

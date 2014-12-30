@@ -1,0 +1,78 @@
+% for Haskell/Agda code
+\usepackage{listings}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\newcommand{\unit}{\text{\texttt{()}}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\bN}{$\N$}
+\newcommand{\uu}{\text{\_}}
+\newcommand{\cons}{\coloncolon}
+\newcommand{\GG}{\Gamma}
+\newcommand{\Gg}{\gamma}
+\newcommand{\GD}{\Delta}
+\newcommand{\Gd}{\delta}
+\newcommand{\Ga}{\alpha}
+\newcommand{\Gb}{\beta}
+\newcommand{\Gt}{\tau}
+\newcommand{\Gn}{\eta}
+\newcommand{\GS}{\Sigma}
+\newcommand{\Gs}{\sigma}
+\newcommand{\GL}{\Lambda}
+\newcommand{\Gl}{\lambda}
+\newcommand{\Gk}{\kappa}
+\newcommand{\Gr}{\rho}
+\newcommand{\A}[1]{\Pi[#1]\;}
+\newcommand{\As}[1]{\Pi\;#1\;}
+\newcommand{\E}[1]{\Sigma[#1]\;}
+\newcommand{\Es}[1]{\Sigma\;#1\;}
+\newcommand{\entails}{\;\;\vdash\;\;}
+\newcommand{\lam}[1]{\lambda #1.\;}
+\newcommand{\fst}{\mathtt{fst}\,}
+\newcommand{\snd}{\mathtt{snd}\,}
+\newcommand{\injl}{\mathtt{left}\,}
+\newcommand{\injr}{\mathtt{right}\,}
+\newcommand{\case}{\mathtt{case}\,}
+
+\makeatletter
+\newcommand*\idstyle{%
+        \expandafter\id@style\the\lst@token\relax
+}
+\def\id@style#1#2\relax{%
+  \ifcat#1\relax\else
+    \ifnum`#1<\uccode`#1%
+      \it
+    \else
+      \ifnum`#1>\uccode`#1%
+        \it
+      \fi
+    \fi
+  \fi
+}
+\makeatother
+
+\lstdefinelanguage{HaskellUlisses} {
+  basicstyle=\linespread{1.2}\selectfont\small,
+  columns=fullflexible,     %%
+  keepspaces=true,          %%
+  identifierstyle=\idstyle, %%
+  morekeywords={data,class,instance,case,of,where,let,in,do,if,then,else,type,with,newtype,syntax},
+  sensitive=true,
+  morecomment=[l][\small\it\textbf]{--},
+  morecomment=[s][\small\it\textbf]{\{-}{-\}},
+  morestring=[b]",
+  stringstyle=\texttt,
+  showstringspaces=false,
+  numberstyle=\tiny,
+  numberblanklines=true,
+  showspaces=false,
+  breaklines=true,
+  showtabs=false,
+  aboveskip=4pt,
+  belowskip=-13pt
+}
+
+\lstnewenvironment{code}{\lstset{language=HaskellUlisses,mathescape=true}}{}
+\newcommand{\inline}{
+    \lstinline[ mathescape=true
+              , numbers=none
+              , language=HaskellUlisses ] }
+
